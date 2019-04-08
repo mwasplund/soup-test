@@ -1,0 +1,6 @@
+# VSCode
+.vscode/ipch/
+
+# Soup
+.soup/
+out/
