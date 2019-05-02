@@ -5,7 +5,6 @@
 #pragma once
 
 using namespace Soup::Syntax;
-using namespace Soup::Syntax::OuterTree;
 
 namespace Soup::Test
 {
@@ -15,8 +14,9 @@ namespace Soup::Test
     class TestClass
     {
     public:
-        TestClass(std::string name) :
+        TestClass(std::string name, std::vector<std::string> qualifiers) :
             m_name(std::move(name)),
+            m_qualifiers(std::move(qualifiers)),
             m_facts()
         {
         }
@@ -24,6 +24,11 @@ namespace Soup::Test
         const std::string& GetName() const
         {
             return m_name;
+        }
+
+        const std::vector<std::string>& GetQualifiers() const
+        {
+            return m_qualifiers;
         }
 
         const std::vector<std::string>& GetFacts() const
@@ -38,6 +43,7 @@ namespace Soup::Test
 
     private:
         std::string m_name;
+        std::vector<std::string> m_qualifiers;
         std::vector<std::string> m_facts;
     };
 
@@ -57,7 +63,7 @@ namespace Soup::Test
         }
 
     protected:
-        virtual void Visit(const FunctionDefinition& node) override final
+        virtual void Visit(const OuterTree::FunctionDefinition& node) override final
         {
             // Check if the function has a parent class
             if (IsFact(node))
@@ -71,10 +77,10 @@ namespace Soup::Test
 
     private:
         // Check if the privided function has a fact attribute
-        void AddTestMethod(const FunctionDefinition& function)
+        void AddTestMethod(const OuterTree::FunctionDefinition& function)
         {
             // Get the parent class name
-            auto& parentClass = dynamic_cast<const ClassDeclaration&>(function.GetParent());
+            auto& parentClass = dynamic_cast<const OuterTree::ClassSpecifier&>(function.GetParent());
             if (!parentClass.HasIdentifierToken())
                 throw std::runtime_error("A test class must have a name.");
             auto& parentClassName = parentClass.GetIdentifierToken().GetValue();
@@ -83,20 +89,26 @@ namespace Soup::Test
             auto classEntry = m_testClasses.find(parentClassName);
             if (classEntry == m_testClasses.end())
             {
+                // Build up the namespace for the class
+                std::vector<std::string> qualifiers = GetContainingQualfiers(parentClass);
+
                 // Add the new class
-                auto insertResult = m_testClasses.emplace(parentClassName, TestClass(parentClassName));
+                auto insertResult = m_testClasses.emplace(
+                    parentClassName,
+                    TestClass(parentClassName, std::move(qualifiers)));
             }
 
             auto& testClass = m_testClasses.at(parentClassName);
 
             // Register the method name
-            auto& methodName = dynamic_cast<const SimpleIdentifierExpression&>(function.GetIdentifier())
-                .GetIdentifierToken().GetValue();
+            auto& methodName = dynamic_cast<const OuterTree::SimpleIdentifier&>(
+                function.GetIdentifier().GetUnqualifiedIdentifier())
+                    .GetIdentifierToken().GetValue();
             testClass.GetFacts().push_back(methodName);
         }
 
         // Check if the privided function has a fact attribute
-        bool IsFact(const FunctionDefinition& function)
+        bool IsFact(const OuterTree::FunctionDefinition& function)
         {
             auto& attributeSpecifiers = function.GetAttributeSpecifierSequence().GetItems();
             for (auto& specifier : attributeSpecifiers)
@@ -114,6 +126,28 @@ namespace Soup::Test
             }
 
             return false;
+        }
+
+        std::vector<std::string> GetContainingQualfiers(const OuterTree::SyntaxNode& node)
+        {
+            std::vector<std::string> qualifiers = {};
+            const OuterTree::SyntaxNode* currentNode = &node;
+            while (currentNode->HasParent())
+            {
+                // Check if is namespace
+                if (currentNode->GetType() == SyntaxNodeType::NamespaceDefinition)
+                {
+                    auto& namespaceDefinition = dynamic_cast<const OuterTree::NamespaceDefinition&>(*currentNode);
+                    for (auto& identifier : namespaceDefinition.GetNameIdentifierList().GetItems())
+                    {
+                        qualifiers.push_back(identifier->GetValue());
+                    }
+                }
+
+                currentNode = &currentNode->GetParent();
+            }
+
+            return qualifiers;
         }
 
     private:
