@@ -111,8 +111,15 @@ namespace Soup::Test
                     auto includeFile = includeDir + "/" + file.filename().string();
                     auto targetGenFile = genDir / file.filename().replace_extension(".gen.h"); 
                     auto runnerSyntaxTree = BuildTestRunner(testBuilder, includeFile);
+
+                    // Writting gen file
+                    std::cout << "GEN: " << targetGenFile << std::endl;
                     auto runnerFile = std::ofstream(targetGenFile);
                     runnerSyntaxTree->Write(runnerFile);
+                }
+                else
+                {
+                    std::cout << "No Tests Found." << std::endl;
                 }
             }
             catch(const std::exception& e)
@@ -379,121 +386,38 @@ namespace Soup::Test
                         SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Semicolon))),
             };
 
-            for (auto& testMethod : testClass.GetFacts())
+            for (auto& testMethod : testClass.GetTestMethods())
             {
-                // testClass->[TEST_NAME]();
-                auto testMemberCall = SyntaxFactory::CreateExpressionStatement(
-                    SyntaxFactory::CreateInvocationExpression(
-                        SyntaxFactory::CreateBinaryExpression(
-                            BinaryOperator::MemberOfPointer,
-                            SyntaxFactory::CreateIdentifierExpression(
-                                SyntaxFactory::CreateSimpleIdentifier(
-                                    SyntaxFactory::CreateUniqueToken(
-                                        SyntaxTokenType::Identifier,
-                                        "testClass",
-                                        {
-                                            SyntaxFactory::CreateTrivia(" "),
-                                        },
-                                        {}))),
-                            SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Arrow),
-                            SyntaxFactory::CreateIdentifierExpression(
-                                SyntaxFactory::CreateSimpleIdentifier(
-                                    SyntaxFactory::CreateUniqueToken(SyntaxTokenType::Identifier, testMethod)))),
-                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::OpenParenthesis),
-                        SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>({}, {}),
-                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::CloseParenthesis)),
-                    SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Semicolon));
-
-                // state += RunTest(className, "[TEST_NAME]", [&testClass]() { testClass->[TEST_NAME](); });
-                auto testNameLiteral = "\"" + testMethod + "\"";
-                auto runTestCall = SyntaxFactory::CreateExpressionStatement(
-                    SyntaxFactory::CreateBinaryExpression(
-                        BinaryOperator::AdditionAssignment,
-                        SyntaxFactory::CreateIdentifierExpression(
-                            SyntaxFactory::CreateSimpleIdentifier(
-                                SyntaxFactory::CreateUniqueToken(
-                                    SyntaxTokenType::Identifier,
-                                    "state",
-                                    {
-                                        SyntaxFactory::CreateTrivia("\n"),
-                                        SyntaxFactory::CreateTrivia("    "),
-                                    },
-                                    {}))),
-                        SyntaxFactory::CreateKeywordToken(
-                            SyntaxTokenType::PlusEqual,
+                if (testMethod.IsTheory)
+                {
+                    for (auto& theory : testMethod.Theories)
+                    {
+                        // Hack: Create a single argument as a literal from the string
+                        auto testNameLiteral = "\"" + testMethod.Name + "(" + EscapeString(theory) + ")\"";
+                        auto parameters = SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>(
                             {
-                                SyntaxFactory::CreateTrivia(" "),
-                            },
-                            {}),
-                        SyntaxFactory::CreateInvocationExpression(
-                            SyntaxFactory::CreateIdentifierExpression(
-                                SyntaxFactory::CreateSimpleIdentifier(
-                                    SyntaxFactory::CreateUniqueToken(
-                                        SyntaxTokenType::Identifier,
-                                        "RunTest",
-                                        {
-                                            SyntaxFactory::CreateTrivia(" "),
-                                        },
-                                        {}))),
-                            SyntaxFactory::CreateKeywordToken(SyntaxTokenType::OpenParenthesis),
-                            SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>(
-                                {
-                                    SyntaxFactory::CreateIdentifierExpression(
-                                        SyntaxFactory::CreateSimpleIdentifier(
-                                            SyntaxFactory::CreateUniqueToken(SyntaxTokenType::Identifier, "className"))),
-                                    SyntaxFactory::CreateIdentifierExpression(
-                                        SyntaxFactory::CreateSimpleIdentifier(
-                                            SyntaxFactory::CreateUniqueToken(
-                                                SyntaxTokenType::Identifier,
-                                                testNameLiteral,
-                                                {
-                                                    SyntaxFactory::CreateTrivia(" "),
-                                                },
-                                                {}))),
-                                    SyntaxFactory::CreateLambdaExpression(
-                                        SyntaxFactory::CreateKeywordToken(
-                                            SyntaxTokenType::OpenBracket,
-                                            {
-                                                SyntaxFactory::CreateTrivia(" "),
-                                            },
-                                            {}),
-                                        SyntaxFactory::CreateSyntaxSeparatorList<LambdaCaptureClause>(
-                                            {
-                                                SyntaxFactory::CreateLambdaCaptureClause(
-                                                    SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Ampersand),
-                                                    SyntaxFactory::CreateUniqueToken(SyntaxTokenType::Identifier, "testClass")),
-                                            },
-                                            {}),
-                                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::CloseBracket),
-                                        SyntaxFactory::CreateParameterList(
-                                            SyntaxFactory::CreateKeywordToken(SyntaxTokenType::OpenParenthesis),
-                                            SyntaxFactory::CreateSyntaxSeparatorList<Parameter>({}, {}),
-                                            SyntaxFactory::CreateKeywordToken(SyntaxTokenType::CloseParenthesis)),
-                                        SyntaxFactory::CreateCompoundStatement(
-                                            SyntaxFactory::CreateKeywordToken(
-                                                SyntaxTokenType::OpenBrace,
-                                                {
-                                                    SyntaxFactory::CreateTrivia(" "),
-                                                },
-                                                {}),
-                                            SyntaxFactory::CreateSyntaxList<Statement>({
-                                                testMemberCall,
-                                            }),
-                                            SyntaxFactory::CreateKeywordToken(
-                                                SyntaxTokenType::CloseBrace,
-                                                {
-                                                    SyntaxFactory::CreateTrivia(" "),
-                                                },
-                                                {}))),
-                                },
-                                {
-                                    SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Comma),
-                                    SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Comma),
-                                }),
-                            SyntaxFactory::CreateKeywordToken(SyntaxTokenType::CloseParenthesis))),
-                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Semicolon));
-
-                statements.push_back(std::move(runTestCall));
+                                SyntaxFactory::CreateLiteralExpression(
+                                    LiteralType::String,
+                                    SyntaxFactory::CreateUniqueToken(SyntaxTokenType::StringLiteral, theory)),
+                            }, 
+                            {});
+                        auto runTestCall = BuildRunTestCall(
+                            testMethod.Name,
+                            std::move(testNameLiteral),
+                            std::move(parameters));
+                        statements.push_back(std::move(runTestCall));
+                    }
+                }
+                else
+                {
+                    auto testNameLiteral = "\"" + testMethod.Name + "\"";
+                    auto parameters = SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>({}, {});
+                    auto runTestCall = BuildRunTestCall(
+                        testMethod.Name,
+                        std::move(testNameLiteral),
+                        std::move(parameters));
+                    statements.push_back(std::move(runTestCall));
+                }
             }
 
             // Add return "return state;"
@@ -572,6 +496,144 @@ namespace Soup::Test
                             {}))));
 
             return runnerFunction;
+        }
+
+        static std::shared_ptr<const Statement> BuildRunTestCall(
+            const std::string& testName,
+            std::string testNameLiteral,
+            std::shared_ptr<const SyntaxSeparatorList<SyntaxNode>> parameters)
+        {
+            // testClass->[TEST_NAME]([PARAMETERS]);
+            auto testMemberCall = SyntaxFactory::CreateExpressionStatement(
+                SyntaxFactory::CreateInvocationExpression(
+                    SyntaxFactory::CreateBinaryExpression(
+                        BinaryOperator::MemberOfPointer,
+                        SyntaxFactory::CreateIdentifierExpression(
+                            SyntaxFactory::CreateSimpleIdentifier(
+                                SyntaxFactory::CreateUniqueToken(
+                                    SyntaxTokenType::Identifier,
+                                    "testClass",
+                                    {
+                                        SyntaxFactory::CreateTrivia(" "),
+                                    },
+                                    {}))),
+                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Arrow),
+                        SyntaxFactory::CreateIdentifierExpression(
+                            SyntaxFactory::CreateSimpleIdentifier(
+                                SyntaxFactory::CreateUniqueToken(SyntaxTokenType::Identifier, testName)))),
+                    SyntaxFactory::CreateKeywordToken(SyntaxTokenType::OpenParenthesis),
+                    parameters,
+                    SyntaxFactory::CreateKeywordToken(SyntaxTokenType::CloseParenthesis)),
+                SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Semicolon));
+
+            // state += RunTest(className, "[TEST_NAME_LITERAL]", [&testClass]() { testClass->[TEST_NAME]([PARAMETERS]); });
+            auto runTestCall = SyntaxFactory::CreateExpressionStatement(
+                SyntaxFactory::CreateBinaryExpression(
+                    BinaryOperator::AdditionAssignment,
+                    SyntaxFactory::CreateIdentifierExpression(
+                        SyntaxFactory::CreateSimpleIdentifier(
+                            SyntaxFactory::CreateUniqueToken(
+                                SyntaxTokenType::Identifier,
+                                "state",
+                                {
+                                    SyntaxFactory::CreateTrivia("\n"),
+                                    SyntaxFactory::CreateTrivia("    "),
+                                },
+                                {}))),
+                    SyntaxFactory::CreateKeywordToken(
+                        SyntaxTokenType::PlusEqual,
+                        {
+                            SyntaxFactory::CreateTrivia(" "),
+                        },
+                        {}),
+                    SyntaxFactory::CreateInvocationExpression(
+                        SyntaxFactory::CreateIdentifierExpression(
+                            SyntaxFactory::CreateSimpleIdentifier(
+                                SyntaxFactory::CreateUniqueToken(
+                                    SyntaxTokenType::Identifier,
+                                    "RunTest",
+                                    {
+                                        SyntaxFactory::CreateTrivia(" "),
+                                    },
+                                    {}))),
+                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::OpenParenthesis),
+                        SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>(
+                            {
+                                SyntaxFactory::CreateIdentifierExpression(
+                                    SyntaxFactory::CreateSimpleIdentifier(
+                                        SyntaxFactory::CreateUniqueToken(SyntaxTokenType::Identifier, "className"))),
+                                SyntaxFactory::CreateIdentifierExpression(
+                                    SyntaxFactory::CreateSimpleIdentifier(
+                                        SyntaxFactory::CreateUniqueToken(
+                                            SyntaxTokenType::Identifier,
+                                            testNameLiteral,
+                                            {
+                                                SyntaxFactory::CreateTrivia(" "),
+                                            },
+                                            {}))),
+                                SyntaxFactory::CreateLambdaExpression(
+                                    SyntaxFactory::CreateKeywordToken(
+                                        SyntaxTokenType::OpenBracket,
+                                        {
+                                            SyntaxFactory::CreateTrivia(" "),
+                                        },
+                                        {}),
+                                    SyntaxFactory::CreateSyntaxSeparatorList<LambdaCaptureClause>(
+                                        {
+                                            SyntaxFactory::CreateLambdaCaptureClause(
+                                                SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Ampersand),
+                                                SyntaxFactory::CreateUniqueToken(SyntaxTokenType::Identifier, "testClass")),
+                                        },
+                                        {}),
+                                    SyntaxFactory::CreateKeywordToken(SyntaxTokenType::CloseBracket),
+                                    SyntaxFactory::CreateParameterList(
+                                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::OpenParenthesis),
+                                        SyntaxFactory::CreateSyntaxSeparatorList<Parameter>({}, {}),
+                                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::CloseParenthesis)),
+                                    SyntaxFactory::CreateCompoundStatement(
+                                        SyntaxFactory::CreateKeywordToken(
+                                            SyntaxTokenType::OpenBrace,
+                                            {
+                                                SyntaxFactory::CreateTrivia(" "),
+                                            },
+                                            {}),
+                                        SyntaxFactory::CreateSyntaxList<Statement>({
+                                            testMemberCall,
+                                        }),
+                                        SyntaxFactory::CreateKeywordToken(
+                                            SyntaxTokenType::CloseBrace,
+                                            {
+                                                SyntaxFactory::CreateTrivia(" "),
+                                            },
+                                            {}))),
+                            },
+                            {
+                                SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Comma),
+                                SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Comma),
+                            }),
+                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::CloseParenthesis))),
+                    SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Semicolon));
+
+            return runTestCall;
+        }
+
+        static std::string EscapeString(const std::string& value)
+        {
+            auto result = std::stringstream();
+            char previousCharacter = 0;
+            for (char character : value)
+            {
+                // If escape character and it isnt already escaped
+                if (character == '\"' && previousCharacter != '\\')
+                {
+                    result << '\\';
+                }
+
+                result << character;
+                previousCharacter = character;
+            }
+
+            return result.str();
         }
     };
 }

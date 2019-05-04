@@ -8,6 +8,23 @@ using namespace Soup::Syntax;
 
 namespace Soup::Test
 {
+    struct TestMethod
+    {
+        TestMethod(
+            bool isTheory,
+            std::string name,
+            std::vector<std::string> theories) :
+            IsTheory(isTheory),
+            Name(std::move(name)),
+            Theories(std::move(theories))
+        {
+        }
+
+        bool IsTheory;
+        std::string Name;
+        std::vector<std::string> Theories;
+    };
+
     /// <summary>
     /// A test class container
     /// </summary>
@@ -17,7 +34,7 @@ namespace Soup::Test
         TestClass(std::string name, std::vector<std::string> qualifiers) :
             m_name(std::move(name)),
             m_qualifiers(std::move(qualifiers)),
-            m_facts()
+            m_testMethods()
         {
         }
 
@@ -31,20 +48,20 @@ namespace Soup::Test
             return m_qualifiers;
         }
 
-        const std::vector<std::string>& GetFacts() const
+        const std::vector<TestMethod>& GetTestMethods() const
         {
-            return m_facts;
+            return m_testMethods;
         }
 
-        std::vector<std::string>& GetFacts()
+        std::vector<TestMethod>& GetTestMethods()
         {
-            return m_facts;
+            return m_testMethods;
         }
 
     private:
         std::string m_name;
         std::vector<std::string> m_qualifiers;
-        std::vector<std::string> m_facts;
+        std::vector<TestMethod> m_testMethods;
     };
 
     /// <summary>
@@ -68,7 +85,11 @@ namespace Soup::Test
             // Check if the function has a parent class
             if (IsFact(node))
             {
-                AddTestMethod(node);
+                AddTestMethod(node, false);
+            }
+            else if (IsTheory(node))
+            {
+                AddTestMethod(node, true);
             }
 
             // Call base implementation
@@ -77,7 +98,7 @@ namespace Soup::Test
 
     private:
         // Check if the privided function has a fact attribute
-        void AddTestMethod(const OuterTree::FunctionDefinition& function)
+        void AddTestMethod(const OuterTree::FunctionDefinition& function, bool isTheory)
         {
             // Get the parent class name
             auto& parentClass = dynamic_cast<const OuterTree::ClassSpecifier&>(function.GetParent());
@@ -100,11 +121,21 @@ namespace Soup::Test
 
             auto& testClass = m_testClasses.at(parentClassName);
 
-            // Register the method name
+            // Get the method name
             auto& methodName = dynamic_cast<const OuterTree::SimpleIdentifier&>(
                 function.GetIdentifier().GetUnqualifiedIdentifier())
                     .GetIdentifierToken().GetValue();
-            testClass.GetFacts().push_back(methodName);
+
+            // If this is a theory then load of all of the inline data
+            std::vector<std::string> theories = {};
+            if (isTheory)
+            {
+                theories = GetTheories(function);
+            }
+
+            // Register the method name
+            testClass.GetTestMethods().push_back(
+                TestMethod(isTheory, methodName, std::move(theories)));
         }
 
         // Check if the privided function has a fact attribute
@@ -126,6 +157,63 @@ namespace Soup::Test
             }
 
             return false;
+        }
+
+        // Check if the privided function has a theory attribute
+        bool IsTheory(const OuterTree::FunctionDefinition& function)
+        {
+            auto& attributeSpecifiers = function.GetAttributeSpecifierSequence().GetItems();
+            for (auto& specifier : attributeSpecifiers)
+            {
+                auto attributes = specifier->GetAttributes().GetItems();
+                if (attributes.size() == 1)
+                {
+                    auto& attribute = attributes.at(0);
+                    auto& value = attribute->GetIdentifierToken().GetValue();
+                    if (value == "Theory")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        std::vector<std::string> GetTheories(const OuterTree::FunctionDefinition& function)
+        {
+            std::vector<std::string> theories = {};
+            auto& attributeSpecifiers = function.GetAttributeSpecifierSequence().GetItems();
+            for (auto& specifier : attributeSpecifiers)
+            {
+                auto attributes = specifier->GetAttributes().GetItems();
+                if (attributes.size() == 1)
+                {
+                    auto& attribute = attributes.at(0);
+                    auto& value = attribute->GetIdentifierToken().GetValue();
+                    if (value == "InlineData")
+                    {
+                        if (!attribute->HasArgumentClause())
+                        {
+                            std::cout << "ERROR: Must have arugments to theory." << std::endl;
+                            continue;
+                        }
+
+                        // Combine everything into a big string 
+                        // TODO: We need to parse this for realz
+                        auto& arguments = attribute->GetArgumentClause();
+                        std::stringstream stringBuilder;
+                        for (auto& token : arguments.GetTokens().GetItems())
+                        {
+                            token->Write(stringBuilder);
+                        }
+
+                        theories.push_back(stringBuilder.str());
+                    }
+                }
+            }
+
+            return theories;
         }
 
         std::vector<std::string> GetContainingQualfiers(const OuterTree::SyntaxNode& node)
