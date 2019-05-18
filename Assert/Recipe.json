@@ -1,0 +1,9 @@
+{
+  "name": "SoupTest",
+  "version": "0.1.0",
+  "dependencies": [
+    "D:/Repos/SoupSTL/core/"
+  ],
+  "public": "Module.cppm",
+  "source": []
+}
