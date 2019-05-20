@@ -2,7 +2,7 @@
 
 namespace SoupTest
 {
-    export class Assert
+    class Assert
     {
     public:
         static void Fail(const std::string& message)
@@ -27,7 +27,8 @@ namespace SoupTest
             }
         }
 
-        static void ThrowsRuntimeError(std::function<void(void)> test)
+        template<typename T>
+        static void ThrowsRuntimeError(T test)
         {
             try
             {

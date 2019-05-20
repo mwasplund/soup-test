@@ -548,14 +548,23 @@ namespace Soup::Test
                         {}),
                     SyntaxFactory::CreateInvocationExpression(
                         SyntaxFactory::CreateIdentifierExpression(
-                            SyntaxFactory::CreateSimpleIdentifier(
-                                SyntaxFactory::CreateUniqueToken(
-                                    SyntaxTokenType::Identifier,
-                                    "RunTest",
+                            SyntaxFactory::CreateNestedNameSpecifier(
+                                SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>(
                                     {
-                                        SyntaxFactory::CreateTrivia(" "),
+                                        SyntaxFactory::CreateSimpleIdentifier(
+                                            SyntaxFactory::CreateUniqueToken(
+                                                SyntaxTokenType::Identifier,
+                                                "SoupTest",
+                                                {
+                                                    SyntaxFactory::CreateTrivia(" "),
+                                                },
+                                                {})),
                                     },
-                                    {}))),
+                                    {
+                                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::DoubleColon),
+                                    })),
+                            SyntaxFactory::CreateSimpleIdentifier(
+                                SyntaxFactory::CreateUniqueToken(SyntaxTokenType::Identifier, "RunTest"))),
                         SyntaxFactory::CreateKeywordToken(SyntaxTokenType::OpenParenthesis),
                         SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>(
                             {
