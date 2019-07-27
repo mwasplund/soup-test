@@ -81,7 +81,9 @@ namespace SoupTest
         {
             if (expected != actual)
             {
-                Fail(message);
+                auto errorExpected = std::stringstream();
+                errorExpected << message;
+                Fail(errorExpected.str());
             }
         }
 
@@ -92,11 +94,35 @@ namespace SoupTest
         {
             if (expected != actual)
             {
-                auto errorExpected = 
-                    message + 
-                    " Expected<" + expected +
-                    "> Actual<" + actual + ">";
-                Fail(errorExpected);
+                auto errorExpected = std::stringstream();
+                errorExpected << message <<
+                    " Expected<" << expected <<
+                    "> Actual<" << actual << ">";
+                Fail(errorExpected.str());
+            }
+        }
+
+        template<typename T>
+        static void AreEqual(
+            const std::vector<T>& expected,
+            const std::vector<T>& actual,
+            const std::string& message)
+        {
+            if (expected.size() != actual.size())
+            {
+                auto errorExpected = std::stringstream();
+                errorExpected << message <<
+                    " Size does not match [" <<
+                    expected.size() << ", " <<
+                    actual.size() << "]";
+                Fail(errorExpected.str());
+            }
+            else
+            {
+                for (size_t i = 0; i < expected.size(); i++)
+                {
+                    Assert::AreEqual(expected[i], actual[i], message);
+                }
             }
         }
 
