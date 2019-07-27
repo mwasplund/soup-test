@@ -2,7 +2,7 @@
   "name": "SoupTest",
   "version": "0.1.0",
   "dependencies": [
-    "D:/Repos/SoupSTL/core/"
+    "../../../Dependencies/SoupSTL/core/"
   ],
   "public": "Module.cppm",
   "source": []
