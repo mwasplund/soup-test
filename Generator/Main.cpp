@@ -3,7 +3,7 @@
 // </copyright>
 
 import std.core;
-import SoupSyntax;
+import Soup.Syntax;
 
 #include "Program.h"
 

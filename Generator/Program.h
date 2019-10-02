@@ -112,7 +112,7 @@ namespace Soup::Test
                     auto targetGenFile = genDir / file.filename().replace_extension(".gen.h"); 
                     auto runnerSyntaxTree = BuildTestRunner(testBuilder, includeFile);
 
-                    // Writting gen file
+                    // Write gen file
                     std::cout << "GEN: " << targetGenFile << std::endl;
                     auto runnerFile = std::ofstream(targetGenFile);
                     runnerSyntaxTree->Write(runnerFile);
@@ -207,111 +207,111 @@ namespace Soup::Test
             std::vector<std::shared_ptr<const Statement>> statements = 
             {
                 SyntaxFactory::CreateDeclarationStatement(
-                        SyntaxFactory::CreateSimpleDeclaration(
-                            SyntaxFactory::CreateDeclarationSpecifierSequence(
-                                SyntaxFactory::CreatePrimitiveDataTypeSpecifier(
-                                    PrimitiveDataType::Auto,
-                                    SyntaxFactory::CreateKeywordToken(
-                                        SyntaxTokenType::Auto,
-                                        {
-                                            SyntaxFactory::CreateTrivia("\n"),
-                                            SyntaxFactory::CreateTrivia("    "),
-                                        },
-                                        {}))),
-                            SyntaxFactory::CreateInitializerDeclaratorList(
-                                SyntaxFactory::CreateSyntaxSeparatorList<InitializerDeclarator>(
+                    SyntaxFactory::CreateSimpleDeclaration(
+                        SyntaxFactory::CreateDeclarationSpecifierSequence(
+                            SyntaxFactory::CreatePrimitiveDataTypeSpecifier(
+                                PrimitiveDataType::Auto,
+                                SyntaxFactory::CreateKeywordToken(
+                                    SyntaxTokenType::Auto,
                                     {
-                                        SyntaxFactory::CreateInitializerDeclarator(
-                                            SyntaxFactory::CreateSimpleIdentifier(
-                                                SyntaxFactory::CreateUniqueToken(
-                                                    SyntaxTokenType::Identifier,
-                                                    "className",
-                                                    {
-                                                        SyntaxFactory::CreateTrivia(" "),
-                                                    },
-                                                    {})),
-                                            SyntaxFactory::CreateValueEqualInitializer(
-                                                SyntaxFactory::CreateKeywordToken(
-                                                    SyntaxTokenType::Equal,
-                                                    {
-                                                        SyntaxFactory::CreateTrivia(" "),
-                                                    },
-                                                    {}),
-                                                SyntaxFactory::CreateLiteralExpression(
-                                                    LiteralType::Integer,
-                                                    SyntaxFactory::CreateUniqueToken(
-                                                        SyntaxTokenType::StringLiteral,
-                                                        classNameLiteral,
-                                                        {
-                                                            SyntaxFactory::CreateTrivia(" "),
-                                                        },
-                                                        {})))),
+                                        SyntaxFactory::CreateTrivia("\n"),
+                                        SyntaxFactory::CreateTrivia("    "),
                                     },
-                                    {})),
-                            SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Semicolon))),
+                                    {}))),
+                        SyntaxFactory::CreateInitializerDeclaratorList(
+                            SyntaxFactory::CreateSyntaxSeparatorList<InitializerDeclarator>(
+                                {
+                                    SyntaxFactory::CreateInitializerDeclarator(
+                                        SyntaxFactory::CreateSimpleIdentifier(
+                                            SyntaxFactory::CreateUniqueToken(
+                                                SyntaxTokenType::Identifier,
+                                                "className",
+                                                {
+                                                    SyntaxFactory::CreateTrivia(" "),
+                                                },
+                                                {})),
+                                        SyntaxFactory::CreateValueEqualInitializer(
+                                            SyntaxFactory::CreateKeywordToken(
+                                                SyntaxTokenType::Equal,
+                                                {
+                                                    SyntaxFactory::CreateTrivia(" "),
+                                                },
+                                                {}),
+                                            SyntaxFactory::CreateLiteralExpression(
+                                                LiteralType::Integer,
+                                                SyntaxFactory::CreateUniqueToken(
+                                                    SyntaxTokenType::StringLiteral,
+                                                    classNameLiteral,
+                                                    {
+                                                        SyntaxFactory::CreateTrivia(" "),
+                                                    },
+                                                    {})))),
+                                },
+                                {})),
+                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Semicolon))),
                 SyntaxFactory::CreateDeclarationStatement(
-                        SyntaxFactory::CreateSimpleDeclaration(
-                            SyntaxFactory::CreateDeclarationSpecifierSequence(
-                                SyntaxFactory::CreatePrimitiveDataTypeSpecifier(
-                                    PrimitiveDataType::Auto,
-                                    SyntaxFactory::CreateKeywordToken(
-                                        SyntaxTokenType::Auto,
-                                        {
-                                            SyntaxFactory::CreateTrivia("\n"),
-                                            SyntaxFactory::CreateTrivia("    "),
-                                        },
-                                        {}))),
-                            SyntaxFactory::CreateInitializerDeclaratorList(
-                                SyntaxFactory::CreateSyntaxSeparatorList<InitializerDeclarator>(
+                    SyntaxFactory::CreateSimpleDeclaration(
+                        SyntaxFactory::CreateDeclarationSpecifierSequence(
+                            SyntaxFactory::CreatePrimitiveDataTypeSpecifier(
+                                PrimitiveDataType::Auto,
+                                SyntaxFactory::CreateKeywordToken(
+                                    SyntaxTokenType::Auto,
                                     {
-                                        SyntaxFactory::CreateInitializerDeclarator(
-                                            SyntaxFactory::CreateSimpleIdentifier(
-                                                SyntaxFactory::CreateUniqueToken(
-                                                    SyntaxTokenType::Identifier,
-                                                    "testClass",
-                                                    {
-                                                        SyntaxFactory::CreateTrivia(" "),
-                                                    },
-                                                    {})),
-                                            SyntaxFactory::CreateValueEqualInitializer(
-                                                SyntaxFactory::CreateKeywordToken(
-                                                    SyntaxTokenType::Equal,
-                                                    {
-                                                        SyntaxFactory::CreateTrivia(" "),
-                                                    },
-                                                    {}),
-                                                SyntaxFactory::CreateInvocationExpression(
-                                                    SyntaxFactory::CreateIdentifierExpression(
-                                                        SyntaxFactory::CreateNestedNameSpecifier(
-                                                            SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>(
-                                                                {
-                                                                    SyntaxFactory::CreateSimpleIdentifier(
-                                                                        SyntaxFactory::CreateUniqueToken(
-                                                                            SyntaxTokenType::Identifier,
-                                                                            "std",
-                                                                            {
-                                                                                SyntaxFactory::CreateTrivia(" "),
-                                                                            },
-                                                                            {})),
-                                                                },
-                                                                {
-                                                                    SyntaxFactory::CreateKeywordToken(SyntaxTokenType::DoubleColon),
-                                                                })),
-                                                        SyntaxFactory::CreateSimpleTemplateIdentifier(
-                                                            SyntaxFactory::CreateUniqueToken(SyntaxTokenType::Identifier, "make_shared"),
-                                                            SyntaxFactory::CreateKeywordToken(SyntaxTokenType::LessThan),
-                                                            SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>(
-                                                                {
-                                                                    testClassType,
-                                                                },
-                                                                {}),
-                                                            SyntaxFactory::CreateKeywordToken(SyntaxTokenType::GreaterThan))),
-                                                    SyntaxFactory::CreateKeywordToken(SyntaxTokenType::OpenParenthesis),
-                                                    SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>({}, {}),
-                                                    SyntaxFactory::CreateKeywordToken(SyntaxTokenType::CloseParenthesis)))),
+                                        SyntaxFactory::CreateTrivia("\n"),
+                                        SyntaxFactory::CreateTrivia("    "),
                                     },
-                                    {})),
-                            SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Semicolon))),
+                                    {}))),
+                        SyntaxFactory::CreateInitializerDeclaratorList(
+                            SyntaxFactory::CreateSyntaxSeparatorList<InitializerDeclarator>(
+                                {
+                                    SyntaxFactory::CreateInitializerDeclarator(
+                                        SyntaxFactory::CreateSimpleIdentifier(
+                                            SyntaxFactory::CreateUniqueToken(
+                                                SyntaxTokenType::Identifier,
+                                                "testClass",
+                                                {
+                                                    SyntaxFactory::CreateTrivia(" "),
+                                                },
+                                                {})),
+                                        SyntaxFactory::CreateValueEqualInitializer(
+                                            SyntaxFactory::CreateKeywordToken(
+                                                SyntaxTokenType::Equal,
+                                                {
+                                                    SyntaxFactory::CreateTrivia(" "),
+                                                },
+                                                {}),
+                                            SyntaxFactory::CreateInvocationExpression(
+                                                SyntaxFactory::CreateIdentifierExpression(
+                                                    SyntaxFactory::CreateNestedNameSpecifier(
+                                                        SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>(
+                                                            {
+                                                                SyntaxFactory::CreateSimpleIdentifier(
+                                                                    SyntaxFactory::CreateUniqueToken(
+                                                                        SyntaxTokenType::Identifier,
+                                                                        "std",
+                                                                        {
+                                                                            SyntaxFactory::CreateTrivia(" "),
+                                                                        },
+                                                                        {})),
+                                                            },
+                                                            {
+                                                                SyntaxFactory::CreateKeywordToken(SyntaxTokenType::DoubleColon),
+                                                            })),
+                                                    SyntaxFactory::CreateSimpleTemplateIdentifier(
+                                                        SyntaxFactory::CreateUniqueToken(SyntaxTokenType::Identifier, "make_shared"),
+                                                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::LessThan),
+                                                        SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>(
+                                                            {
+                                                                testClassType,
+                                                            },
+                                                            {}),
+                                                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::GreaterThan))),
+                                                SyntaxFactory::CreateKeywordToken(SyntaxTokenType::OpenParenthesis),
+                                                SyntaxFactory::CreateSyntaxSeparatorList<SyntaxNode>({}, {}),
+                                                SyntaxFactory::CreateKeywordToken(SyntaxTokenType::CloseParenthesis)))),
+                                },
+                                {})),
+                        SyntaxFactory::CreateKeywordToken(SyntaxTokenType::Semicolon))),
                 SyntaxFactory::CreateDeclarationStatement(
                     SyntaxFactory::CreateSimpleDeclaration(
                         SyntaxFactory::CreateDeclarationSpecifierSequence(

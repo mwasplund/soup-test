@@ -23,9 +23,9 @@ namespace SoupTest
     {
         try
         {
-            // std::cout << "Running: " << testName << std::endl;
+            // std::cout << "Running: " << className << "::" << testName << std::endl;
             test();
-            // std::cout << "PASS: " << testName << std::endl;
+            // std::cout << "PASS: " << className << "::" << testName << std::endl;
             return TestState{ 0, 1 };
         }
         catch (std::exception& ex)
