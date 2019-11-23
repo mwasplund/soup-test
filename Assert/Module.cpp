@@ -1,5 +1,5 @@
 export module SoupTest;
-import std.core;
+import StandardLibrary;;
 
 #include "SoupAssert.h"
 #include "RunTest.h"

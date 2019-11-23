@@ -31,7 +31,7 @@ namespace SoupTest
 		catch (std::exception& ex)
 		{
 			std::cout << "FAIL: " << className << "::" << testName << std::endl;
-			std::cout << typeid(ex).name() << std::endl;
+			// TODO: std::cout << typeid(ex).name() << std::endl;
 
 			if (!std::string(ex.what()).empty())
 			{

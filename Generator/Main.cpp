@@ -2,8 +2,8 @@
 // Copyright (c) Soup. All rights reserved.
 // </copyright>
 
-import std.core;
-import Soup.Syntax;
+import StandardLibrary;;
+import SoupSyntax;
 
 #include "Program.h"
 
