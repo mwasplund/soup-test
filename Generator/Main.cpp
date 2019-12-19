@@ -2,7 +2,6 @@
 // Copyright (c) Soup. All rights reserved.
 // </copyright>
 
-import StandardLibrary;;
 import SoupSyntax;
 
 #include "Program.h"
