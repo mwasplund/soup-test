@@ -2,7 +2,16 @@
 // Copyright (c) Soup. All rights reserved.
 // </copyright>
 
-import SoupSyntax;
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <vector>
+
+import SoupSyntaxParser;
 
 #include "Program.h"
 

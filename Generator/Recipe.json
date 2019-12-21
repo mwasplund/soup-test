@@ -1,9 +1,9 @@
 {
   "name": "SoupTest",
   "version": "0.1.0",
-  "type": "executable",
+  "type": "Executable",
   "dependencies": [
-    "../../SoupSyntax/Syntax/"
+    "../../SoupSyntax/Source/Parser/"
   ],
   "source": [
     "Main.cpp"
