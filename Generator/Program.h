@@ -105,6 +105,12 @@ namespace Soup::Test
 				TestBuilder testBuilder;
 				syntaxTree->GetTranslationUnit().Accept(testBuilder);
 
+				// Print the entire syntax tree
+				// std::stringstream message;
+				// auto writer = SyntaxTreeWriter(message);
+				// syntaxTree->GetTranslationUnit().Accept(writer);
+				// std::cout << message.str() << "\n";
+
 				// Build up the runner and save it to file
 				if (!testBuilder.GetTestClasses().empty())
 				{
