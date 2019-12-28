@@ -195,7 +195,7 @@ namespace Soup::Test
 					{
 						if (!attribute->HasArgumentClause())
 						{
-							std::cout << "ERROR: Must have arugments to theory." << std::endl;
+							std::cout << "ERROR: Must have arguments to theory." << std::endl;
 							continue;
 						}
 
