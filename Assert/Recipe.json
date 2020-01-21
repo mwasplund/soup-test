@@ -1,8 +1,5 @@
 {
-  "name": "SoupTest",
-  "version": "0.1.0",
-  "dependencies": [
-  ],
-  "public": "Module.cpp",
-  "source": []
+  "Name": "SoupTest",
+  "Version": "0.1.0",
+  "Public": "Module.cpp"
 }
