@@ -1,0 +1,3 @@
+Name = "SoupTest"
+Version = "0.1.0"
+Public = "Module.cpp"
