@@ -5,13 +5,14 @@ namespace SoupTest
 	class Assert
 	{
 	public:
-		static void Fail(const std::string& message)
+		static void Fail(std::string_view message)
 		{
-			auto errorMessage = "Assert Failed: " + message;
-			throw std::logic_error(errorMessage.c_str());
+			auto errorMessage = std::stringstream();
+			errorMessage << "Assert Failed: " << message;
+			throw std::logic_error(std::move(errorMessage.str()));
 		}
 
-		static void IsTrue(bool value, const std::string& message)
+		static void IsTrue(bool value, std::string_view message)
 		{
 			if (!value)
 			{
@@ -19,7 +20,7 @@ namespace SoupTest
 			}
 		}
 
-		static void IsFalse(bool value, const std::string& message)
+		static void IsFalse(bool value, std::string_view message)
 		{
 			if (value)
 			{
@@ -77,7 +78,7 @@ namespace SoupTest
 		static typename std::enable_if<!std::is_pointer<T>::value && !is_shared_ptr<T>::value>::type AreEqual(
 			const T& expected,
 			const T& actual,
-			const std::string& message)
+			std::string_view message)
 		{
 			if (expected != actual)
 			{
@@ -88,9 +89,9 @@ namespace SoupTest
 		}
 
 		static void AreEqual(
-			const std::string& expected,
-			const std::string& actual,
-			const std::string& message)
+			std::string_view expected,
+			std::string_view actual,
+			std::string_view message)
 		{
 			if (expected != actual)
 			{
@@ -106,7 +107,7 @@ namespace SoupTest
 		static void AreEqual(
 			const std::vector<T>& expected,
 			const std::vector<T>& actual,
-			const std::string& message)
+			std::string_view message)
 		{
 			if (expected.size() != actual.size())
 			{
@@ -130,7 +131,7 @@ namespace SoupTest
 		static typename std::enable_if<std::is_pointer<T>::value || is_shared_ptr<T>::value>::type AreNotEqual(
 			T expected,
 			T actual,
-			const std::string& message)
+			std::string_view message)
 		{
 			if (expected == nullptr)
 			{
@@ -150,7 +151,7 @@ namespace SoupTest
 		static typename std::enable_if<!std::is_pointer<T>::value && !is_shared_ptr<T>::value>::type AreNotEqual(
 			const T& expected,
 			const T& actual,
-			const std::string& message)
+			std::string_view message)
 		{
 			if (expected == actual)
 			{
