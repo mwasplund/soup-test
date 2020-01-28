@@ -103,6 +103,21 @@ namespace SoupTest
 			}
 		}
 
+		static void AreEqual(
+			const std::string& expected,
+			const std::string& actual,
+			std::string_view message)
+		{
+			if (expected != actual)
+			{
+				auto errorExpected = std::stringstream();
+				errorExpected << message <<
+					" Expected<" << expected <<
+					"> Actual<" << actual << ">";
+				Fail(errorExpected.str());
+			}
+		}
+
 		template<typename T>
 		static void AreEqual(
 			const std::vector<T>& expected,
