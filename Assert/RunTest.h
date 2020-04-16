@@ -2,7 +2,7 @@
 
 namespace SoupTest
 {
-	struct TestState
+	export struct TestState
 	{
 		int FailCount;
 		int PassCount;
@@ -15,7 +15,7 @@ namespace SoupTest
 		}
 	};
 
-	template<typename T>
+	export template<typename T>
 	TestState RunTest(
 		std::string className,
 		std::string testName,

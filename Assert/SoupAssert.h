@@ -2,7 +2,7 @@
 
 namespace SoupTest
 {
-	class Assert
+	export class Assert
 	{
 	public:
 		static void Fail(std::string_view message)
