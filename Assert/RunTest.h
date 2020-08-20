@@ -1,6 +1,6 @@
 #pragma once
 
-namespace SoupTest
+namespace Soup::Test
 {
 	export struct TestState
 	{
