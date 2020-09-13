@@ -46,6 +46,15 @@ namespace Soup::Test
 		template<typename T> struct is_shared_ptr<std::shared_ptr<T>> : std::true_type {};
 
 		template<typename T>
+		static typename std::enable_if<std::is_pointer<T>::value || is_shared_ptr<T>::value>::type IsNull(T value, const std::string& message)
+		{
+			if (value != nullptr)
+			{
+				Fail(message);
+			}
+		}
+
+		template<typename T>
 		static typename std::enable_if<std::is_pointer<T>::value || is_shared_ptr<T>::value>::type NotNull(T value, const std::string& message)
 		{
 			if (value == nullptr)
@@ -80,7 +89,7 @@ namespace Soup::Test
 			const T& actual,
 			std::string_view message)
 		{
-			if (expected != actual)
+			if (!(expected == actual))
 			{
 				auto errorExpected = std::stringstream();
 				errorExpected << message;
@@ -93,7 +102,7 @@ namespace Soup::Test
 			std::string_view actual,
 			std::string_view message)
 		{
-			if (expected != actual)
+			if (!(expected == actual))
 			{
 				auto errorExpected = std::stringstream();
 				errorExpected << message <<
@@ -108,7 +117,7 @@ namespace Soup::Test
 			const std::string& actual,
 			std::string_view message)
 		{
-			if (expected != actual)
+			if (!(expected == actual))
 			{
 				auto errorExpected = std::stringstream();
 				errorExpected << message <<

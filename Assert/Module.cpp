@@ -4,7 +4,7 @@ module;
 #include <sstream>
 #include <string>
 #include <vector>
-export module Soup.Test;
+export module Soup.Test.Assert;
 
 #include "SoupAssert.h"
 #include "RunTest.h"
