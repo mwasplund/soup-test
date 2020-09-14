@@ -42,6 +42,21 @@ namespace Soup::Test
 			}
 		}
 
+		template<typename T>
+		static void ThrowsRuntimeError(T test, std::string_view expectedMessage)
+		{
+			try
+			{
+				test();
+				Fail("Test did not throw when expected.");
+			}
+			catch (std::runtime_error& exception)
+			{
+				// Saw the expected error
+				Assert::AreEqual(expectedMessage, exception.what(), "Verify exception message matches expected");
+			}
+		}
+
 		template<typename T> struct is_shared_ptr : std::false_type {};
 		template<typename T> struct is_shared_ptr<std::shared_ptr<T>> : std::true_type {};
 
