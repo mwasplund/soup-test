@@ -36,7 +36,7 @@ namespace Soup::Test
 				test();
 				Fail("Test did not throw when expected.");
 			}
-			catch (std::runtime_error& exception)
+			catch (std::runtime_error&)
 			{
 				// Saw the expected error
 			}
