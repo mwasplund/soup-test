@@ -1,0 +1,16 @@
+Name = "CSharp.Sample"
+Language = "C++"
+Version = "1.0.0"
+Source = [
+	"MyClass.cpp",
+]
+
+[Dependencies]
+Build = [
+	"../TestBuild/"
+]
+
+[Tests]
+Source = [
+	"MyClass.UnitTests.cpp",
+]
