@@ -1,4 +1,4 @@
-import module Sample;
+import Sample;
 
 namespace Sample::UnitTests
 {
@@ -9,13 +9,17 @@ namespace Sample::UnitTests
 		{
 			auto uut = MyClass();
 			auto result = uut.DoWork();
+			if (result != 123)
+				throw "Does not match expected.";
 		}
 	};
+}
 
-	void Main()
-	{
-		auto test = MyClassUnitTests();
+int main()
+{
+	auto test = ::Sample::UnitTests::MyClassUnitTests();
 
-		test.DoWork_Success();
-	}
+	test.DoWork_Success();
+
+	return 0;
 }

@@ -3,13 +3,16 @@
 // </copyright>
 
 using Opal;
-using Soup.Build.CSharp.Compiler;
+using Soup.Build.Cpp.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Soup.Build.CSharp
+namespace Soup.Build.Cpp
 {
+	/// <summary>
+	/// The test build task that will run after the main build task
+	/// </summary>
 	public class TestBuildTask : IBuildTask
 	{
 		private IBuildState buildState;
@@ -35,11 +38,12 @@ namespace Soup.Build.CSharp
 			this(buildState, factory, new Dictionary<string, Func<IValueTable, ICompiler>>())
 		{
 			// Register default compilers
-			// TODO: Fix up compiler names for different languages
 			this.compilerFactory.Add("MSVC", (IValueTable activeState) =>
 			{
-				var clToolPath = new Path(activeState["Roslyn.CscToolPath"].AsString());
-				return new Compiler.Roslyn.Compiler(clToolPath);
+				var clToolPath = new Path(activeState["MSVC.ClToolPath"].AsString());
+				var linkToolPath = new Path(activeState["MSVC.LinkToolPath"].AsString());
+				var libToolPath = new Path(activeState["MSVC.LibToolPath"].AsString());
+				return new Compiler.MSVC.Compiler(clToolPath, linkToolPath, libToolPath);
 			});
 		}
 
@@ -50,6 +54,9 @@ namespace Soup.Build.CSharp
 			this.compilerFactory = compilerFactory;
 		}
 
+		/// <summary>
+		/// The Core Execute task
+		/// </summary>
 		public void Execute()
 		{
 			var activeState = this.buildState.ActiveState;
@@ -72,7 +79,7 @@ namespace Soup.Build.CSharp
 
 			// Load the test properties
 			var testTable = recipeTable["Tests"].AsTable();
-			LoadTestBuildProperties(buildState, testTable, arguments);
+			LoadTestBuildProperties(testTable, arguments);
 
 			// Load up the input build parameters from the shared build state as if
 			// this is a dependency build
@@ -101,9 +108,9 @@ namespace Soup.Build.CSharp
 
 			// Create the operation to run tests during build
 			var title = "Run Tests";
-			var program = new Path("C:/Program Files/dotnet/dotnet.exe");
+			var program = buildResult.TargetFile;
 			var workingDirectory = arguments.WorkingDirectory;
-			var runArguments = buildResult.TargetFile.ToString();
+			var runArguments = "";
 			var inputFiles = new List<Path>()
 			{
 				program,
@@ -130,13 +137,30 @@ namespace Soup.Build.CSharp
 			}
 		}
 
-		void LoadBuildProperties(
+		private void LoadBuildProperties(
 			IValueTable buildTable,
 			BuildArguments arguments)
 		{
+			arguments.LanguageStandard = (LanguageStandard)
+				buildTable["LanguageStandard"].AsInteger();
 			arguments.WorkingDirectory = new Path(buildTable["WorkingDirectory"].AsString());
 			arguments.ObjectDirectory = new Path(buildTable["ObjectDirectory"].AsString());
 			arguments.BinaryDirectory = new Path(buildTable["BinaryDirectory"].AsString());
+
+			if (buildTable.TryGetValue("IncludeDirectories", out var includeDirectoriesValue))
+			{
+				arguments.IncludeDirectories = includeDirectoriesValue.AsList().Select(value => new Path(value.AsString())).ToList();
+			}
+
+			if (buildTable.TryGetValue("PlatformLibraries", out var platformLibrariesValue))
+			{
+				arguments.PlatformLinkDependencies = platformLibrariesValue.AsList().Select(value => new Path(value.AsString())).ToList();
+			}
+
+			if (buildTable.TryGetValue("LinkLibraries", out var linkLibrariesValue))
+			{
+				arguments.LinkDependencies = linkLibrariesValue.AsList().Select(value => new Path(value.AsString())).ToList();
+			}
 
 			if (buildTable.TryGetValue("LibraryPaths", out var libraryPathsValue))
 			{
@@ -166,18 +190,9 @@ namespace Soup.Build.CSharp
 			{
 				arguments.GenerateSourceDebugInfo = false;
 			}
-
-			// Load the link dependencies
-			if (buildTable.TryGetValue("LinkDependencies", out var linkDependenciesValue))
-			{
-				arguments.LinkDependencies = CombineUnique(
-					arguments.LinkDependencies,
-					linkDependenciesValue.AsList().Select(value => new Path(value.AsString())));
-			}
 		}
 
-		void LoadTestBuildProperties(
-			IBuildState buildState,
+		private void LoadTestBuildProperties(
 			IValueTable testTable,
 			BuildArguments arguments)
 		{
@@ -188,6 +203,21 @@ namespace Soup.Build.CSharp
 			else
 			{
 				throw new InvalidOperationException("No Test Source Files");
+			}
+
+			// Combine the include paths from the recipe and the system
+			if (testTable.TryGetValue("IncludePaths", out var includePathsValue))
+			{
+				arguments.IncludeDirectories = CombineUnique(
+					arguments.IncludeDirectories,
+					includePathsValue.AsList().Select(value => new Path(value.AsString())));
+			}
+
+			if (testTable.TryGetValue("PlatformLibraries", out var platformLibrariesValue))
+			{
+				arguments.PlatformLinkDependencies = CombineUnique(
+					arguments.PlatformLinkDependencies,
+					platformLibrariesValue.AsList().Select(value => new Path(value.AsString())));
 			}
 
 			arguments.TargetName = "TestHarness";
@@ -212,9 +242,17 @@ namespace Soup.Build.CSharp
 					arguments.LinkDependencies,
 					linkDependenciesValue.AsList().Select(value => new Path(value.AsString())));
 			}
+
+			// Load the module references
+			if (sharedBuildTable.TryGetValue("ModuleDependencies", out var moduleDependenciesValue))
+			{
+				arguments.ModuleDependencies = CombineUnique(
+					arguments.ModuleDependencies,
+					moduleDependenciesValue.AsList().Select(value => new Path(value.AsString())));
+			}
 		}
 
-		static void LoadTestDependencyBuildInput(
+		private static void LoadTestDependencyBuildInput(
 			IBuildState buildState,
 			IValueTable activeState,
 			BuildArguments arguments)
@@ -235,6 +273,13 @@ namespace Soup.Build.CSharp
 						{
 							var dependencyBuildTable = buildValue.AsTable();
 
+							if (dependencyBuildTable.TryGetValue("ModuleDependencies", out var moduleDependenciesValue))
+							{
+								arguments.ModuleDependencies = CombineUnique(
+									arguments.ModuleDependencies,
+									moduleDependenciesValue.AsList().Select(value => new Path(value.AsString())));
+							}
+
 							if (dependencyBuildTable.TryGetValue("RuntimeDependencies", out var runtimeDependenciesValue))
 							{
 								arguments.RuntimeDependencies = CombineUnique(
@@ -254,7 +299,7 @@ namespace Soup.Build.CSharp
 			}
 		}
 
-		static List<Path> CombineUnique(
+		private static List<Path> CombineUnique(
 			IEnumerable<Path> collection1,
 			IEnumerable<Path> collection2)
 		{

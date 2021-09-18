@@ -1,9 +1,7 @@
-Name = "CSharp.Sample"
+Name = "Cpp.Sample"
 Language = "C++"
 Version = "1.0.0"
-Source = [
-	"MyClass.cpp",
-]
+Interface = "MyClass.cpp"
 
 [Dependencies]
 Build = [
