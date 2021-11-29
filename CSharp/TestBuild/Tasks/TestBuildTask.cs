@@ -104,13 +104,14 @@ namespace Soup.Build.CSharp
 			var program = new Path("C:/Program Files/dotnet/dotnet.exe");
 			var workingDirectory = arguments.WorkingDirectory;
 			var runArguments = buildResult.TargetFile.ToString();
-			var inputFiles = new List<Path>()
-			{
-				program,
-			};
-			var outputFiles = new List<Path>()
-			{
-			};
+
+			// Ensure that the executable and all runtime dependencies are in place before running tests
+			var inputFiles = new List<Path>(buildResult.RuntimeDependencies);
+			inputFiles.Add(program);
+
+			// The test should have no output
+			var outputFiles = new List<Path>();
+
 			var runTestsOperation =
 				new BuildOperation(
 					title,

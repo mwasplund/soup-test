@@ -111,13 +111,14 @@ namespace Soup.Build.Cpp
 			var program = buildResult.TargetFile;
 			var workingDirectory = arguments.WorkingDirectory;
 			var runArguments = "";
-			var inputFiles = new List<Path>()
-			{
-				program,
-			};
-			var outputFiles = new List<Path>()
-			{
-			};
+
+			// Ensure that the executable and all runtime dependencies are in place before running tests
+			var inputFiles = new List<Path>(buildResult.RuntimeDependencies);
+			inputFiles.Add(program);
+
+			// The test should have no output
+			var outputFiles = new List<Path>();
+
 			var runTestsOperation =
 				new BuildOperation(
 					title,
@@ -231,7 +232,8 @@ namespace Soup.Build.Cpp
 			// Load the runtime dependencies
 			if (sharedBuildTable.TryGetValue("RuntimeDependencies", out var runtimeDependenciesValue))
 			{
-				arguments.RuntimeDependencies = MakeUnique(
+				arguments.RuntimeDependencies = CombineUnique(
+					arguments.RuntimeDependencies,
 					runtimeDependenciesValue.AsList().Select(value => new Path(value.AsString())));
 			}
 
