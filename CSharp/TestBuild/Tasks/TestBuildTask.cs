@@ -102,7 +102,7 @@ namespace Soup.Build.CSharp
 			// Create the operation to run tests during build
 			var title = "Run Tests";
 			var program = new Path("C:/Program Files/dotnet/dotnet.exe");
-			var workingDirectory = arguments.WorkingDirectory;
+			var workingDirectory = arguments.SourceRootDirectory;
 			var runArguments = buildResult.TargetFile.ToString();
 
 			// Ensure that the executable and all runtime dependencies are in place before running tests
@@ -135,7 +135,8 @@ namespace Soup.Build.CSharp
 			IValueTable buildTable,
 			BuildArguments arguments)
 		{
-			arguments.WorkingDirectory = new Path(buildTable["WorkingDirectory"].AsString());
+			arguments.SourceRootDirectory = new Path(buildTable["SourceRootDirectory"].AsString());
+			arguments.TargetRootDirectory = new Path(buildTable["TargetRootDirectory"].AsString());
 			arguments.ObjectDirectory = new Path(buildTable["ObjectDirectory"].AsString());
 			arguments.BinaryDirectory = new Path(buildTable["BinaryDirectory"].AsString());
 

@@ -109,7 +109,7 @@ namespace Soup.Build.Cpp
 			// Create the operation to run tests during build
 			var title = "Run Tests";
 			var program = buildResult.TargetFile;
-			var workingDirectory = arguments.WorkingDirectory;
+			var workingDirectory = arguments.SourceRootDirectory;
 			var runArguments = "";
 
 			// Ensure that the executable and all runtime dependencies are in place before running tests
@@ -144,7 +144,8 @@ namespace Soup.Build.Cpp
 		{
 			arguments.LanguageStandard = (LanguageStandard)
 				buildTable["LanguageStandard"].AsInteger();
-			arguments.WorkingDirectory = new Path(buildTable["WorkingDirectory"].AsString());
+			arguments.SourceRootDirectory = new Path(buildTable["SourceRootDirectory"].AsString());
+			arguments.TargetRootDirectory = new Path(buildTable["TargetRootDirectory"].AsString());
 			arguments.ObjectDirectory = new Path(buildTable["ObjectDirectory"].AsString());
 			arguments.BinaryDirectory = new Path(buildTable["BinaryDirectory"].AsString());
 
