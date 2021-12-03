@@ -4,6 +4,9 @@ Version = "1.0.0"
 Interface = "MyClass.cpp"
 
 [Dependencies]
+Runtime = [
+	"Opal@0.3.0",
+]
 Build = [
 	"../TestBuild/"
 ]

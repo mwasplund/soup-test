@@ -1,3 +1,5 @@
+#include <string>
+
 import Sample;
 
 namespace Sample::UnitTests
@@ -9,7 +11,7 @@ namespace Sample::UnitTests
 		{
 			auto uut = MyClass();
 			auto result = uut.DoWork();
-			if (result != 123)
+			if (result != Opal::Path("./Folder/File.txt"))
 				throw "Does not match expected.";
 		}
 	};

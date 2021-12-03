@@ -1,13 +1,18 @@
+module;
+#include <string>
 export module Sample;
+import Opal;
+
+using namespace Opal;
 
 namespace Sample
 {
 	export class MyClass
 	{
 	public:
-		int DoWork()
+		Path DoWork()
 		{
-			return 123;
+			return Path("./Folder/File.txt");
 		}
 	};
 }
