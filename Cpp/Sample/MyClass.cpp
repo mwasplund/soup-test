@@ -1,18 +1,15 @@
-module;
-#include <string>
 export module Sample;
-import Opal;
-
-using namespace Opal;
+import Sample.Helper;
 
 namespace Sample
 {
 	export class MyClass
 	{
 	public:
-		Path DoWork()
+		int DoWork()
 		{
-			return Path("./Folder/File.txt");
+			auto helper = Helper();
+			return helper.DoWork();
 		}
 	};
 }

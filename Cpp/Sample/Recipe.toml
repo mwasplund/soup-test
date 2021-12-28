@@ -5,7 +5,7 @@ Interface = "MyClass.cpp"
 
 [Dependencies]
 Runtime = [
-	"Opal@0.3.0",
+	"../HelperDLL/",
 ]
 Build = [
 	"../TestBuild/"
