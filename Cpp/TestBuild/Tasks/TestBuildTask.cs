@@ -109,7 +109,7 @@ namespace Soup.Build.Cpp
 			// Create the operation to run tests during build
 			var title = "Run Tests";
 			var program = buildResult.TargetFile;
-			var workingDirectory = arguments.SourceRootDirectory;
+			var workingDirectory = arguments.TargetRootDirectory;
 			var runArguments = "";
 
 			// Ensure that the executable and all runtime dependencies are in place before running tests

@@ -102,12 +102,14 @@ namespace Soup.Build.CSharp
 			// Create the operation to run tests during build
 			var title = "Run Tests";
 			var program = new Path("C:/Program Files/dotnet/dotnet.exe");
-			var workingDirectory = arguments.SourceRootDirectory;
+			var runtimeConfigFile = arguments.BinaryDirectory + new Path($"{arguments.TargetName}.runtimeconfig.json");
+			var workingDirectory = arguments.TargetRootDirectory;
 			var runArguments = buildResult.TargetFile.ToString();
 
 			// Ensure that the executable and all runtime dependencies are in place before running tests
 			var inputFiles = new List<Path>(buildResult.RuntimeDependencies);
 			inputFiles.Add(program);
+			inputFiles.Add(runtimeConfigFile);
 
 			// The test should have no output
 			var outputFiles = new List<Path>();
