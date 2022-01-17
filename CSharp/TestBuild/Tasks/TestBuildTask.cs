@@ -3,6 +3,7 @@
 // </copyright>
 
 using Opal;
+using Opal.System;
 using Soup.Build.CSharp.Compiler;
 using System;
 using System.Collections.Generic;
@@ -48,6 +49,12 @@ namespace Soup.Build.CSharp
 			this.buildState = buildState;
 			this.factory = factory;
 			this.compilerFactory = compilerFactory;
+
+			// TODO: Not ideal to be registering this on the fly...
+			if (!LifetimeManager.Has<IProcessManager>())
+			{
+				LifetimeManager.RegisterSingleton<IProcessManager, RuntimeProcessManager>();
+			}
 		}
 
 		public void Execute()

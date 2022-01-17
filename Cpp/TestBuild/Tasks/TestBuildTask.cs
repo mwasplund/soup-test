@@ -3,6 +3,7 @@
 // </copyright>
 
 using Opal;
+using Opal.System;
 using Soup.Build.Cpp.Compiler;
 using System;
 using System.Collections.Generic;
@@ -52,6 +53,12 @@ namespace Soup.Build.Cpp
 			this.buildState = buildState;
 			this.factory = factory;
 			this.compilerFactory = compilerFactory;
+
+			// TODO: Not ideal to be registering this on the fly...
+			if (!LifetimeManager.Has<IProcessManager>())
+			{
+				LifetimeManager.RegisterSingleton<IProcessManager, RuntimeProcessManager>();
+			}
 		}
 
 		/// <summary>
