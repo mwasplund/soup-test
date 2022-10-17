@@ -28,32 +28,17 @@ namespace Soup::Test
 			}
 		}
 
-		template<typename T>
-		static void ThrowsRuntimeError(T test)
+		template<typename TException, typename TFunc>
+		static TException Throws(TFunc test)
 		{
 			try
 			{
 				test();
 				Fail("Test did not throw when expected.");
 			}
-			catch (std::runtime_error&)
+			catch (const TException& exception)
 			{
-				// Saw the expected error
-			}
-		}
-
-		template<typename T>
-		static void ThrowsRuntimeError(T test, std::string_view expectedMessage)
-		{
-			try
-			{
-				test();
-				Fail("Test did not throw when expected.");
-			}
-			catch (std::runtime_error& exception)
-			{
-				// Saw the expected error
-				Assert::AreEqual(expectedMessage, exception.what(), "Verify exception message matches expected");
+				return TException(exception);
 			}
 		}
 
