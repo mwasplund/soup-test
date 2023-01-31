@@ -67,7 +67,7 @@ class TestBuildTask is SoupTask {
 		TestBuildTask.LoadDependencyBuildInput(sharedBuildTable, arguments)
 
 		// Load up the test dependencies build input to add extra test runtime libraries
-		TestBuildTask.LoadTestDependencyBuildInput(activeState, arguments)
+		TestBuildTask.LoadTestDependencyBuildInput(globalState, arguments)
 
 		// Update to place the output in a sub folder
 		arguments.ObjectDirectory = arguments.ObjectDirectory + Path.new("Test/")
@@ -224,15 +224,15 @@ class TestBuildTask is SoupTask {
 		}
 	}
 
-	static LoadTestDependencyBuildInput(activeState, arguments) {
-		if (activeState.containsKey("Dependencies")) {
-			var dependenciesTable = activeState["Dependencies"]
+	static LoadTestDependencyBuildInput(globalState, arguments) {
+		if (globalState.containsKey("Dependencies")) {
+			var dependenciesTable = globalState["Dependencies"]
 			if (dependenciesTable.containsKey("Test")) {
 				var testDependenciesTable = dependenciesTable["Test"]
 				for (dependencyName in testDependenciesTable) {
 					// Combine the core dependency build inputs for the core build task
-					Soup.info("Combine Test Dependency: %(dependencyName.Key)")
-					var dependencyTable = dependencyName.Value
+					Soup.info("Combine Test Dependency: %(dependencyName.key)")
+					var dependencyTable = dependencyName.value
 
 					if (dependencyTable.containsKey("Build")) {
 						var dependencyBuildTable = dependencyTable["Build"]
