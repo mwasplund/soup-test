@@ -2,6 +2,15 @@
 // Copyright (c) Soup. All rights reserved.
 // </copyright>
 
+import "soup" for Soup, SoupTask
+import "Soup.Build.Utils:./BuildOperation" for BuildOperation
+import "Soup.Build.Utils:./Path" for Path
+import "Soup.Build.Utils:./Set" for Set
+import "Soup.Build.Utils:./ListExtensions" for ListExtensions
+import "Soup.Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType
+import "Soup.Cpp.Compiler:./BuildEngine" for BuildEngine
+import "Soup.Cpp.Compiler.MSVC:./MSVCCompiler" for MSVCCompiler
+
 /// <summary>
 /// The test build task that will run after the main build task
 /// </summary>
@@ -18,54 +27,62 @@ class TestBuildTask is SoupTask {
 		"BuildTask",
 	] }
 
+	static registerCompiler(name, factory) {
+		if (__compilerFactory is Null) __compilerFactory = {}
+		__compilerFactory[name] = factory
+	}
+
 	/// <summary>
 	/// The Core Execute task
 	/// </summary>
 	static evaluate() {
+		// Register default compilers
+		TestBuildTask.registerCompiler("MSVC", TestBuildTask.createMSVCCompiler)
+
 		var activeState = Soup.activeState
+		var globalState = Soup.globalState
 		var sharedState = Soup.sharedState
 
-		var recipeTable = activeState["Recipe"]
+		var recipeTable = globalState["Recipe"]
 		var activeBuildTable = activeState["Build"]
-		var parametersTable = activeState["Parameters"]
+		var parametersTable = globalState["Parameters"]
 
-		if (!recipeTable.ContainsKey("Tests"))
-		{
-			throw new InvalidOperationException("No Tests Specified")
+		if (!recipeTable.containsKey("Tests")) {
+			Fiber.abort("No Tests Specified")
 		}
 
-		var arguments = new BuildArguments()
-		arguments.TargetArchitecture = parametersTable["Architecture"].AsString()
+		var arguments = BuildArguments.new()
+		arguments.TargetArchitecture = parametersTable["Architecture"]
 
 		// Load up the common build properties from the original Build table in the active state
-		LoadBuildProperties(activeBuildTable, arguments)
+		TestBuildTask.LoadBuildProperties(activeBuildTable, arguments)
 
 		// Load the test properties
 		var testTable = recipeTable["Tests"]
-		LoadTestBuildProperties(testTable, arguments)
+		TestBuildTask.LoadTestBuildProperties(testTable, arguments)
 
 		// Load up the input build parameters from the shared build state as if
 		// this is a dependency build
 		var sharedBuildTable = sharedState["Build"]
-		LoadDependencyBuildInput(sharedBuildTable, arguments)
+		TestBuildTask.LoadDependencyBuildInput(sharedBuildTable, arguments)
 
 		// Load up the test dependencies build input to add extra test runtime libraries
-		LoadTestDependencyBuildInput(buildState, activeState, arguments)
+		TestBuildTask.LoadTestDependencyBuildInput(activeState, arguments)
 
 		// Update to place the output in a sub folder
 		arguments.ObjectDirectory = arguments.ObjectDirectory + Path.new("Test/")
 		arguments.BinaryDirectory = arguments.BinaryDirectory + Path.new("Test/")
 
 		// Initialize the compiler to use
-		var compilerName = parametersTable["Compiler"].AsString()
-		if (!this.compilerFactory.TryGetValue(compilerName, out var compileFactory)) {
+		var compilerName = parametersTable["Compiler"]
+		if (!__compilerFactory.containsKey(compilerName)) {
 			Fiber.abort("Unknown compiler: %(compilerName)")
 		}
 
-		var compiler = compileFactory(activeState)
+		var compiler = __compilerFactory[compilerName].call(activeState)
 
-		var buildEngine = new BuildEngine(compiler)
-		var buildResult = buildEngine.Execute(buildState, arguments)
+		var buildEngine = BuildEngine.new(compiler)
+		var buildResult = buildEngine.Execute(arguments)
 
 		// Create the operation to run tests during build
 		var title = "Run Tests"
@@ -74,27 +91,33 @@ class TestBuildTask is SoupTask {
 		var runArguments = ""
 
 		// Ensure that the executable and all runtime dependencies are in place before running tests
-		var inputFiles = new List<Path>(buildResult.RuntimeDependencies)
-		inputFiles.Add(program)
+		var inputFiles = []
+		inputFiles = inputFiles + buildResult.RuntimeDependencies
+		inputFiles.add(program)
 
 		// The test should have no output
-		var outputFiles = new List<Path>()
+		var outputFiles = []
 
-		var runTestsOperation =
-			new BuildOperation(
-				title,
-				workingDirectory,
-				program,
-				runArguments,
-				inputFiles,
-				outputFiles)
+		var runTestsOperation = BuildOperation.new(
+			title,
+			workingDirectory,
+			program,
+			runArguments,
+			inputFiles,
+			outputFiles)
 
 		// Run the test harness
-		buildResult.BuildOperations.Add(runTestsOperation)
+		buildResult.BuildOperations.add(runTestsOperation)
 
 		// Register the build operations
 		for (operation in buildResult.BuildOperations) {
-			buildState.CreateOperation(operation)
+			Soup.createOperation(
+				operation.Title,
+				operation.Executable.toString,
+				operation.Arguments,
+				operation.WorkingDirectory.toString,
+				ListExtensions.ConvertFromPathList(operation.DeclaredInput),
+				ListExtensions.ConvertFromPathList(operation.DeclaredOutput))
 		}
 	}
 
@@ -114,131 +137,122 @@ class TestBuildTask is SoupTask {
 		}
 	}
 
-	static LoadBuildProperties(buildTable, arguments)
-	{
-		arguments.LanguageStandard = (LanguageStandard)
-			buildTable["LanguageStandard"].AsInteger()
-		arguments.SourceRootDirectory = Path.new(buildTable["SourceRootDirectory"].AsString())
-		arguments.TargetRootDirectory = Path.new(buildTable["TargetRootDirectory"].AsString())
-		arguments.ObjectDirectory = Path.new(buildTable["ObjectDirectory"].AsString())
-		arguments.BinaryDirectory = Path.new(buildTable["BinaryDirectory"].AsString())
+	static LoadBuildProperties(buildTable, arguments) {
+		arguments.LanguageStandard = buildTable["LanguageStandard"]
+		arguments.SourceRootDirectory = Path.new(buildTable["SourceRootDirectory"])
+		arguments.TargetRootDirectory = Path.new(buildTable["TargetRootDirectory"])
+		arguments.ObjectDirectory = Path.new(buildTable["ObjectDirectory"])
+		arguments.BinaryDirectory = Path.new(buildTable["BinaryDirectory"])
 
-		if (buildTable.TryGetValue("IncludeDirectories", out var includeDirectoriesValue))
-		{
-			arguments.IncludeDirectories = includeDirectoriesValue.AsList().Select(value => Path.new(value.AsString())).ToList()
+		if (buildTable.containsKey("IncludeDirectories")) {
+			arguments.IncludeDirectories = ListExtensions.ConvertToPathList(buildTable["IncludeDirectories"])
 		}
 
-		if (buildTable.TryGetValue("PlatformLibraries", out var platformLibrariesValue))
-		{
-			arguments.PlatformLinkDependencies = platformLibrariesValue.AsList().Select(value => Path.new(value.AsString())).ToList()
+		if (buildTable.containsKey("PlatformLibraries")) {
+			arguments.PlatformLinkDependencies = ListExtensions.ConvertToPathList(buildTable["PlatformLibraries"])
 		}
 
-		if (buildTable.TryGetValue("LinkLibraries", out var linkLibrariesValue))
-		{
-			arguments.LinkDependencies = linkLibrariesValue.AsList().Select(value => Path.new(value.AsString())).ToList()
+		if (buildTable.containsKey("LinkLibraries")) {
+			arguments.LinkDependencies = ListExtensions.ConvertToPathList(buildTable["LinkLibraries"])
 		}
 
-		if (buildTable.TryGetValue("LibraryPaths", out var libraryPathsValue))
-		{
-			arguments.LibraryPaths = libraryPathsValue.AsList().Select(value => Path.new(value.AsString())).ToList()
+		if (buildTable.containsKey("LibraryPaths")) {
+			arguments.LibraryPaths = ListExtensions.ConvertToPathList(buildTable["LibraryPaths"])
 		}
 
-		if (buildTable.TryGetValue("PreprocessorDefinitions", out var preprocessorDefinitionsValue)) {
-			arguments.PreprocessorDefinitions = preprocessorDefinitionsValue.AsList().Select(value => value.AsString()).ToList()
+		if (buildTable.containsKey("PreprocessorDefinitions")) {
+			arguments.PreprocessorDefinitions = buildTable["PreprocessorDefinitions"]
 		}
 
-		if (buildTable.TryGetValue("OptimizationLevel", out var optimizationLevelValue)) {
-			arguments.OptimizationLevel = (BuildOptimizationLevel)
-				optimizationLevelValue.AsInteger()
+		if (buildTable.containsKey("OptimizationLevel")) {
+			arguments.OptimizationLevel = buildTable["OptimizationLevel"]
 		} else {
 			arguments.OptimizationLevel = BuildOptimizationLevel.None
 		}
 
-		if (buildTable.TryGetValue("GenerateSourceDebugInfo", out var generateSourceDebugInfoValue)) {
-			arguments.GenerateSourceDebugInfo = generateSourceDebugInfoValue.AsBoolean()
+		if (buildTable.containsKey("GenerateSourceDebugInfo")) {
+			arguments.GenerateSourceDebugInfo = buildTable["GenerateSourceDebugInfo"]
 		} else {
 			arguments.GenerateSourceDebugInfo = false
 		}
 	}
 
 	static LoadTestBuildProperties(testTable, arguments) {
-		if (testTable.TryGetValue("Source", out var sourceValue)) {
-			arguments.SourceFiles = sourceValue.AsList().Select(value => Path.new(value.AsString())).ToList()
+		if (testTable.containsKey("Source")) {
+			arguments.SourceFiles = ListExtensions.ConvertToPathList(testTable["Source"])
 		} else {
 			Fiber.abort("No Test Source Files")
 		}
 
 		// Combine the include paths from the recipe and the system
-		if (testTable.TryGetValue("IncludePaths", out var includePathsValue)) {
-			arguments.IncludeDirectories = CombineUnique(
+		if (testTable.containsKey("IncludePaths")) {
+			arguments.IncludeDirectories = TestBuildTask.CombineUnique(
 				arguments.IncludeDirectories,
-				includePathsValue.AsList().Select(value => Path.new(value.AsString())))
+				ListExtensions.ConvertToPathList(testTable["IncludePaths"]))
 		}
 
-		if (testTable.TryGetValue("PlatformLibraries", out var platformLibrariesValue)) {
-			arguments.PlatformLinkDependencies = CombineUnique(
+		if (testTable.containsKey("PlatformLibraries")) {
+			arguments.PlatformLinkDependencies = TestBuildTask.CombineUnique(
 				arguments.PlatformLinkDependencies,
-				platformLibrariesValue.AsList().Select(value => Path.new(value.AsString())))
+				ListExtensions.ConvertToPathList(testTable["PlatformLibraries"]))
 		}
 
 		arguments.TargetName = "TestHarness"
 		arguments.TargetType = BuildTargetType.Executable
 	}
 
-	static LoadDependencyBuildInput(sharedBuildTable, arguments)
-	{
+	static LoadDependencyBuildInput(sharedBuildTable, arguments) {
 		// Load the runtime dependencies
-		if (sharedBuildTable.TryGetValue("RuntimeDependencies", out var runtimeDependenciesValue)) {
-			arguments.RuntimeDependencies = CombineUnique(
+		if (sharedBuildTable.containsKey("RuntimeDependencies")) {
+			arguments.RuntimeDependencies = TestBuildTask.CombineUnique(
 				arguments.RuntimeDependencies,
-				runtimeDependenciesValue.AsList().Select(value => Path.new(value.AsString())))
+				ListExtensions.ConvertToPathList(sharedBuildTable["RuntimeDependencies"]))
 		}
 
 		// Load the link dependencies
-		if (sharedBuildTable.TryGetValue("LinkDependencies", out var linkDependenciesValue)) {
-			arguments.LinkDependencies = CombineUnique(
+		if (sharedBuildTable.containsKey("LinkDependencies")) {
+			arguments.LinkDependencies = TestBuildTask.CombineUnique(
 				arguments.LinkDependencies,
-				linkDependenciesValue.AsList().Select(value => Path.new(value.AsString())))
+				ListExtensions.ConvertToPathList(sharedBuildTable["LinkDependencies"]))
 		}
 
 		// Load the module references
-		if (sharedBuildTable.TryGetValue("ModuleDependencies", out var moduleDependenciesValue)) {
-			arguments.ModuleDependencies = CombineUnique(
+		if (sharedBuildTable.containsKey("ModuleDependencies")) {
+			arguments.ModuleDependencies = TestBuildTask.CombineUnique(
 				arguments.ModuleDependencies,
-				moduleDependenciesValue.AsList().Select(value => Path.new(value.AsString())))
+				ListExtensions.ConvertToPathList(sharedBuildTable["ModuleDependencies"]))
 		}
 	}
 
-	static LoadTestDependencyBuildInput(activeState, arguments)
-	{
-		if (activeState.TryGetValue("Dependencies", out var dependenciesValue)) {
-			var dependenciesTable = dependenciesValue
-			if (dependenciesTable.TryGetValue("Test", out var testValue)) {
-				var testDependenciesTable = testValue
-				foreach (var dependencyName in testDependenciesTable) {
+	static LoadTestDependencyBuildInput(activeState, arguments) {
+		if (activeState.containsKey("Dependencies")) {
+			var dependenciesTable = activeState["Dependencies"]
+			if (dependenciesTable.containsKey("Test")) {
+				var testDependenciesTable = dependenciesTable["Test"]
+				for (dependencyName in testDependenciesTable) {
 					// Combine the core dependency build inputs for the core build task
-					buildState.LogTrace(TraceLevel.Information, "Combine Test Dependency: " + dependencyName.Key)
+					Soup.info("Combine Test Dependency: %(dependencyName.Key)")
 					var dependencyTable = dependencyName.Value
 
-					if (dependencyTable.TryGetValue("Build", out var buildValue)) {
-						var dependencyBuildTable = buildValue
+					if (dependencyTable.containsKey("Build")) {
+						var dependencyBuildTable = dependencyTable["Build"]
 
-						if (dependencyBuildTable.TryGetValue("ModuleDependencies", out var moduleDependenciesValue)) {
-							arguments.ModuleDependencies = CombineUnique(
+						if (dependencyBuildTable.containsKey("ModuleDependencies")) {
+							arguments.ModuleDependencies = TestBuildTask.CombineUnique(
 								arguments.ModuleDependencies,
-								moduleDependenciesValue.AsList().Select(value => Path.new(value.AsString())))
+								ListExtensions.ConvertToPathList(dependencyBuildTable["ModuleDependencies"]))
 						}
 
-						if (dependencyBuildTable.TryGetValue("RuntimeDependencies", out var runtimeDependenciesValue)) {
-							arguments.RuntimeDependencies = CombineUnique(
+						if (dependencyBuildTable.containsKey("RuntimeDependencies")) {
+							arguments.RuntimeDependencies = TestBuildTask.CombineUnique(
 								arguments.RuntimeDependencies,
-								runtimeDependenciesValue.AsList().Select(value => Path.new(value.AsString())))
+								ListExtensions.ConvertToPathList(dependencyBuildTable["RuntimeDependencies"]))
 						}
 
-						if (dependencyBuildTable.TryGetValue("LinkDependencies", out var linkDependenciesValue)) {
-							arguments.LinkDependencies = CombineUnique(
+						if (dependencyBuildTable.containsKey("LinkDependencies")) {
+							arguments.LinkDependencies = TestBuildTask.CombineUnique(
 								arguments.LinkDependencies,
-								linkDependenciesValue.AsList().Select(value => Path.new(value.AsString())))
+								ListExtensions.ConvertToPathList(dependencyBuildTable["LinkDependencies"]))
 						}
 					}
 				}
@@ -247,20 +261,14 @@ class TestBuildTask is SoupTask {
 	}
 
 	static CombineUnique(collection1, collection2) {
-		var valueSet = new HashSet<string>()
-		foreach (var value in collection1)
-			valueSet.Add(value.ToString())
-		foreach (var value in collection2)
-			valueSet.Add(value.ToString())
+		var valueSet = Set.new()
+		for (value in collection1) {
+			valueSet.add(value.toString)
+		}
+		for (value in collection2) {
+			valueSet.add(value.toString)
+		}
 
-		return valueSet.Select(value => Path.new(value)).ToList()
-	}
-
-	static MakeUnique(collection) {
-		var valueSet = new HashSet<string>()
-		foreach (var value in collection)
-			valueSet.Add(value.ToString())
-
-		return valueSet.Select(value => Path.new(value)).ToList()
+		return ListExtensions.ConvertToPathList(valueSet.list)
 	}
 }
