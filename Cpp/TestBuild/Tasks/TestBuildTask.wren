@@ -233,9 +233,10 @@ class TestBuildTask is SoupTask {
 					// Combine the core dependency build inputs for the core build task
 					Soup.info("Combine Test Dependency: %(dependencyName.key)")
 					var dependencyTable = dependencyName.value
+					var dependencySharedStateTable = dependencyTable["SharedState"]
 
-					if (dependencyTable.containsKey("Build")) {
-						var dependencyBuildTable = dependencyTable["Build"]
+					if (dependencySharedStateTable.containsKey("Build")) {
+						var dependencyBuildTable = dependencySharedStateTable["Build"]
 
 						if (dependencyBuildTable.containsKey("ModuleDependencies")) {
 							arguments.ModuleDependencies = TestBuildTask.CombineUnique(
