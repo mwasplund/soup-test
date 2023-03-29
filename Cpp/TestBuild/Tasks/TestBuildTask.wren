@@ -88,7 +88,7 @@ class TestBuildTask is SoupTask {
 		var title = "Run Tests"
 		var program = buildResult.TargetFile
 		var workingDirectory = arguments.TargetRootDirectory
-		var runArguments = ""
+		var runArguments = []
 
 		// Ensure that the executable and all runtime dependencies are in place before running tests
 		var inputFiles = []
