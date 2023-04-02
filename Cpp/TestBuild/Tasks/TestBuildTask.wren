@@ -43,23 +43,21 @@ class TestBuildTask is SoupTask {
 		var globalState = Soup.globalState
 		var sharedState = Soup.sharedState
 
-		var recipeTable = globalState["Recipe"]
+		var recipe = globalState["Recipe"]
 		var activeBuildTable = activeState["Build"]
-		var parametersTable = globalState["Parameters"]
 
-		if (!recipeTable.containsKey("Tests")) {
+		if (!recipe.containsKey("Tests")) {
 			Fiber.abort("No Tests Specified")
 		}
 
 		var arguments = BuildArguments.new()
-		arguments.TargetArchitecture = parametersTable["Architecture"]
 
 		// Load up the common build properties from the original Build table in the active state
 		TestBuildTask.LoadBuildProperties(activeBuildTable, arguments)
 
 		// Load the test properties
-		var testTable = recipeTable["Tests"]
-		TestBuildTask.LoadTestBuildProperties(testTable, arguments)
+		var tests = recipe["Tests"]
+		TestBuildTask.LoadTestBuildProperties(tests, arguments)
 
 		// Load up the input build parameters from the shared build state as if
 		// this is a dependency build
@@ -74,7 +72,7 @@ class TestBuildTask is SoupTask {
 		arguments.BinaryDirectory = arguments.BinaryDirectory + Path.new("Test/")
 
 		// Initialize the compiler to use
-		var compilerName = parametersTable["Compiler"]
+		var compilerName = activeBuildTable["Compiler"]
 		if (!__compilerFactory.containsKey(compilerName)) {
 			Fiber.abort("Unknown compiler: %(compilerName)")
 		}
@@ -138,6 +136,7 @@ class TestBuildTask is SoupTask {
 	}
 
 	static LoadBuildProperties(buildTable, arguments) {
+		arguments.TargetArchitecture = buildTable["Architecture"]
 		arguments.LanguageStandard = buildTable["LanguageStandard"]
 		arguments.SourceRootDirectory = Path.new(buildTable["SourceRootDirectory"])
 		arguments.TargetRootDirectory = Path.new(buildTable["TargetRootDirectory"])
@@ -177,24 +176,24 @@ class TestBuildTask is SoupTask {
 		}
 	}
 
-	static LoadTestBuildProperties(testTable, arguments) {
-		if (testTable.containsKey("Source")) {
-			arguments.SourceFiles = ListExtensions.ConvertToPathList(testTable["Source"])
+	static LoadTestBuildProperties(tests, arguments) {
+		if (tests.containsKey("Source")) {
+			arguments.SourceFiles = ListExtensions.ConvertToPathList(tests["Source"])
 		} else {
 			Fiber.abort("No Test Source Files")
 		}
 
 		// Combine the include paths from the recipe and the system
-		if (testTable.containsKey("IncludePaths")) {
+		if (tests.containsKey("IncludePaths")) {
 			arguments.IncludeDirectories = TestBuildTask.CombineUnique(
 				arguments.IncludeDirectories,
-				ListExtensions.ConvertToPathList(testTable["IncludePaths"]))
+				ListExtensions.ConvertToPathList(tests["IncludePaths"]))
 		}
 
-		if (testTable.containsKey("PlatformLibraries")) {
+		if (tests.containsKey("PlatformLibraries")) {
 			arguments.PlatformLinkDependencies = TestBuildTask.CombineUnique(
 				arguments.PlatformLinkDependencies,
-				ListExtensions.ConvertToPathList(testTable["PlatformLibraries"]))
+				ListExtensions.ConvertToPathList(tests["PlatformLibraries"]))
 		}
 
 		arguments.TargetName = "TestHarness"
