@@ -121,11 +121,12 @@ class TestBuildTask is SoupTask {
 
 	static createMSVCCompiler {
 		return Fn.new { |activeState|
-			var clToolPath = Path.new(activeState["MSVC.ClToolPath"])
-			var linkToolPath = Path.new(activeState["MSVC.LinkToolPath"])
-			var libToolPath = Path.new(activeState["MSVC.LibToolPath"])
-			var rcToolPath = Path.new(activeState["MSVC.RCToolPath"])
-			var mlToolPath = Path.new(activeState["MSVC.MLToolPath"])
+			var msvc = activeState["MSVC"]
+			var clToolPath = Path.new(msvc["ClToolPath"])
+			var linkToolPath = Path.new(msvc["LinkToolPath"])
+			var libToolPath = Path.new(msvc["LibToolPath"])
+			var rcToolPath = Path.new(msvc["RCToolPath"])
+			var mlToolPath = Path.new(msvc["MLToolPath"])
 			return MSVCCompiler.new(
 				clToolPath,
 				linkToolPath,
