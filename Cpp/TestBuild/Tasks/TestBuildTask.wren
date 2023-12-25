@@ -3,13 +3,13 @@
 // </copyright>
 
 import "soup" for Soup, SoupTask
-import "Soup.Build.Utils:./BuildOperation" for BuildOperation
-import "Soup.Build.Utils:./Path" for Path
-import "Soup.Build.Utils:./Set" for Set
-import "Soup.Build.Utils:./ListExtensions" for ListExtensions
-import "Soup.Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType
-import "Soup.Cpp.Compiler:./BuildEngine" for BuildEngine
-import "Soup.Cpp.Compiler.MSVC:./MSVCCompiler" for MSVCCompiler
+import "mwasplund|Soup.Build.Utils:./BuildOperation" for BuildOperation
+import "mwasplund|Soup.Build.Utils:./Path" for Path
+import "mwasplund|Soup.Build.Utils:./Set" for Set
+import "mwasplund|Soup.Build.Utils:./ListExtensions" for ListExtensions
+import "mwasplund|Soup.Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType
+import "mwasplund|Soup.Cpp.Compiler:./BuildEngine" for BuildEngine
+import "mwasplund|Soup.Cpp.Compiler.MSVC:./MSVCCompiler" for MSVCCompiler
 
 /// <summary>
 /// The test build task that will run after the main build task
