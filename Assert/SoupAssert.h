@@ -35,6 +35,7 @@ namespace Soup::Test
 			{
 				test();
 				Fail("Test did not throw when expected.");
+				throw "NO_EXCEPTION_THROWN";
 			}
 			catch (const TException& exception)
 			{
