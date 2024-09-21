@@ -7,7 +7,7 @@ import "mwasplund|Soup.Build.Utils:./BuildOperation" for BuildOperation
 import "mwasplund|Soup.Build.Utils:./Path" for Path
 import "mwasplund|Soup.Build.Utils:./Set" for Set
 import "mwasplund|Soup.Build.Utils:./ListExtensions" for ListExtensions
-import "mwasplund|Soup.Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, PartitionSourceFile, HeaderFileSet
+import "mwasplund|Soup.Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType, PartitionSourceFile, HeaderFileSet
 import "mwasplund|Soup.Cpp.Compiler:./BuildEngine" for BuildEngine
 import "mwasplund|Soup.Cpp.Compiler.Clang:./ClangCompiler" for ClangCompiler
 import "mwasplund|Soup.Cpp.Compiler.GCC:./GCCCompiler" for GCCCompiler
@@ -39,9 +39,9 @@ class TestBuildTask is SoupTask {
 	/// </summary>
 	static evaluate() {
 		// Register default compilers
-		BuildTask.registerCompiler("Clang", BuildTask.createClangCompiler)
-		BuildTask.registerCompiler("GCC", BuildTask.createGCCCompiler)
-		BuildTask.registerCompiler("MSVC", BuildTask.createMSVCCompiler)
+		TestBuildTask.registerCompiler("Clang", TestBuildTask.createClangCompiler)
+		TestBuildTask.registerCompiler("GCC", TestBuildTask.createGCCCompiler)
+		TestBuildTask.registerCompiler("MSVC", TestBuildTask.createMSVCCompiler)
 
 		var activeState = Soup.activeState
 		var globalState = Soup.globalState
