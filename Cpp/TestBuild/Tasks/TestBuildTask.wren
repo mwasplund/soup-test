@@ -3,13 +3,15 @@
 // </copyright>
 
 import "soup" for Soup, SoupTask
-import "Soup.Build.Utils:./BuildOperation" for BuildOperation
-import "Soup.Build.Utils:./Path" for Path
-import "Soup.Build.Utils:./Set" for Set
-import "Soup.Build.Utils:./ListExtensions" for ListExtensions
-import "Soup.Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType
-import "Soup.Cpp.Compiler:./BuildEngine" for BuildEngine
-import "Soup.Cpp.Compiler.MSVC:./MSVCCompiler" for MSVCCompiler
+import "mwasplund|Soup.Build.Utils:./BuildOperation" for BuildOperation
+import "mwasplund|Soup.Build.Utils:./Path" for Path
+import "mwasplund|Soup.Build.Utils:./Set" for Set
+import "mwasplund|Soup.Build.Utils:./ListExtensions" for ListExtensions
+import "mwasplund|Soup.Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType, PartitionSourceFile, HeaderFileSet
+import "mwasplund|Soup.Cpp.Compiler:./BuildEngine" for BuildEngine
+import "mwasplund|Soup.Cpp.Compiler.Clang:./ClangCompiler" for ClangCompiler
+import "mwasplund|Soup.Cpp.Compiler.GCC:./GCCCompiler" for GCCCompiler
+import "mwasplund|Soup.Cpp.Compiler.MSVC:./MSVCCompiler" for MSVCCompiler
 
 /// <summary>
 /// The test build task that will run after the main build task
@@ -37,6 +39,8 @@ class TestBuildTask is SoupTask {
 	/// </summary>
 	static evaluate() {
 		// Register default compilers
+		TestBuildTask.registerCompiler("Clang", TestBuildTask.createClangCompiler)
+		TestBuildTask.registerCompiler("GCC", TestBuildTask.createGCCCompiler)
 		TestBuildTask.registerCompiler("MSVC", TestBuildTask.createMSVCCompiler)
 
 		var activeState = Soup.activeState
@@ -73,6 +77,7 @@ class TestBuildTask is SoupTask {
 
 		// Initialize the compiler to use
 		var compilerName = activeBuildTable["Compiler"]
+		Soup.info("Using Compiler: %(compilerName)")
 		if (!__compilerFactory.containsKey(compilerName)) {
 			Fiber.abort("Unknown compiler: %(compilerName)")
 		}
@@ -116,6 +121,29 @@ class TestBuildTask is SoupTask {
 				operation.WorkingDirectory.toString,
 				ListExtensions.ConvertFromPathList(operation.DeclaredInput),
 				ListExtensions.ConvertFromPathList(operation.DeclaredOutput))
+		}
+
+		Soup.info("Test Build Generate Done")
+	}
+
+	static createClangCompiler {
+		return Fn.new { |activeState|
+			Soup.info("%(activeState)")
+			var clang = activeState["Clang"]
+			var clangToolPath = Path.new(clang["CppCompiler"])
+			var archiveToolPath = Path.new(clang["Archiver"])
+			return ClangCompiler.new(
+				clangToolPath,
+				archiveToolPath)
+		}
+	}
+
+	static createGCCCompiler {
+		return Fn.new { |activeState|
+			var gcc = activeState["GCC"]
+			var gccToolPath = Path.new(gcc["CppCompiler"])
+			return GCCCompiler.new(
+				gccToolPath)
 		}
 	}
 
@@ -267,6 +295,15 @@ class TestBuildTask is SoupTask {
 			valueSet.add(value.toString)
 		}
 		for (value in collection2) {
+			valueSet.add(value.toString)
+		}
+
+		return ListExtensions.ConvertToPathList(valueSet.list)
+	}
+
+	static MakeUnique(collection) {
+		var valueSet = Set.new()
+		for (value in collection) {
 			valueSet.add(value.toString)
 		}
 
