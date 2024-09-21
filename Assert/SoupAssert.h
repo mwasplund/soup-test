@@ -35,12 +35,13 @@ namespace Soup::Test
 			{
 				test();
 				Fail("Test did not throw when expected.");
-				throw "NO_EXCEPTION_THROWN";
 			}
 			catch (const TException& exception)
 			{
 				return TException(exception);
 			}
+
+			throw new std::runtime_error("Should not hit this");
 		}
 
 		template<typename T> struct is_shared_ptr : std::false_type {};
