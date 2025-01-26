@@ -3,15 +3,16 @@
 // </copyright>
 
 import "soup" for Soup, SoupTask
-import "mwasplund|Soup.Build.Utils:./BuildOperation" for BuildOperation
-import "mwasplund|Soup.Build.Utils:./Path" for Path
-import "mwasplund|Soup.Build.Utils:./Set" for Set
-import "mwasplund|Soup.Build.Utils:./ListExtensions" for ListExtensions
-import "mwasplund|Soup.Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType, PartitionSourceFile, HeaderFileSet
-import "mwasplund|Soup.Cpp.Compiler:./BuildEngine" for BuildEngine
-import "mwasplund|Soup.Cpp.Compiler.Clang:./ClangCompiler" for ClangCompiler
-import "mwasplund|Soup.Cpp.Compiler.GCC:./GCCCompiler" for GCCCompiler
-import "mwasplund|Soup.Cpp.Compiler.MSVC:./MSVCCompiler" for MSVCCompiler
+import "Soup|Build.Utils:./BuildOperation" for BuildOperation
+import "Soup|Build.Utils:./Path" for Path
+import "Soup|Build.Utils:./Set" for Set
+import "Soup|Build.Utils:./ListExtensions" for ListExtensions
+import "Soup|Build.Utils:./MapExtensions" for MapExtensions
+import "Soup|Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType, PartitionSourceFile, HeaderFileSet
+import "Soup|Cpp.Compiler:./BuildEngine" for BuildEngine
+import "Soup|Cpp.Compiler.Clang:./ClangCompiler" for ClangCompiler
+import "Soup|Cpp.Compiler.GCC:./GCCCompiler" for GCCCompiler
+import "Soup|Cpp.Compiler.MSVC:./MSVCCompiler" for MSVCCompiler
 
 /// <summary>
 /// The test build task that will run after the main build task
@@ -214,13 +215,13 @@ class TestBuildTask is SoupTask {
 
 		// Combine the include paths from the recipe and the system
 		if (tests.containsKey("IncludePaths")) {
-			arguments.IncludeDirectories = TestBuildTask.CombineUnique(
+			arguments.IncludeDirectories = TestBuildTask.CombinePathListUnique(
 				arguments.IncludeDirectories,
 				ListExtensions.ConvertToPathList(tests["IncludePaths"]))
 		}
 
 		if (tests.containsKey("PlatformLibraries")) {
-			arguments.PlatformLinkDependencies = TestBuildTask.CombineUnique(
+			arguments.PlatformLinkDependencies = TestBuildTask.CombinePathListUnique(
 				arguments.PlatformLinkDependencies,
 				ListExtensions.ConvertToPathList(tests["PlatformLibraries"]))
 		}
@@ -232,14 +233,14 @@ class TestBuildTask is SoupTask {
 	static LoadDependencyBuildInput(sharedBuildTable, arguments) {
 		// Load the runtime dependencies
 		if (sharedBuildTable.containsKey("RuntimeDependencies")) {
-			arguments.RuntimeDependencies = TestBuildTask.CombineUnique(
+			arguments.RuntimeDependencies = TestBuildTask.CombinePathListUnique(
 				arguments.RuntimeDependencies,
 				ListExtensions.ConvertToPathList(sharedBuildTable["RuntimeDependencies"]))
 		}
 
 		// Load the link dependencies
 		if (sharedBuildTable.containsKey("LinkDependencies")) {
-			arguments.LinkDependencies = TestBuildTask.CombineUnique(
+			arguments.LinkDependencies = TestBuildTask.CombinePathListUnique(
 				arguments.LinkDependencies,
 				ListExtensions.ConvertToPathList(sharedBuildTable["LinkDependencies"]))
 		}
@@ -265,19 +266,19 @@ class TestBuildTask is SoupTask {
 						var dependencyBuildTable = dependencySharedStateTable["Build"]
 
 						if (dependencyBuildTable.containsKey("ModuleDependencies")) {
-							arguments.ModuleDependencies = TestBuildTask.CombineUnique(
+							TestBuildTask.AddPathMapUnique(
 								arguments.ModuleDependencies,
-								ListExtensions.ConvertToPathList(dependencyBuildTable["ModuleDependencies"]))
+								MapExtensions.ConvertToPathMap(dependencyBuildTable["ModuleDependencies"]))
 						}
 
 						if (dependencyBuildTable.containsKey("RuntimeDependencies")) {
-							arguments.RuntimeDependencies = TestBuildTask.CombineUnique(
+							arguments.RuntimeDependencies = TestBuildTask.CombinePathListUnique(
 								arguments.RuntimeDependencies,
 								ListExtensions.ConvertToPathList(dependencyBuildTable["RuntimeDependencies"]))
 						}
 
 						if (dependencyBuildTable.containsKey("LinkDependencies")) {
-							arguments.LinkDependencies = TestBuildTask.CombineUnique(
+							arguments.LinkDependencies = TestBuildTask.CombinePathListUnique(
 								arguments.LinkDependencies,
 								ListExtensions.ConvertToPathList(dependencyBuildTable["LinkDependencies"]))
 						}
@@ -287,7 +288,16 @@ class TestBuildTask is SoupTask {
 		}
 	}
 
-	static CombineUnique(collection1, collection2) {
+	static AddPathMapUnique(collection1, collection2) {
+		for (value in collection2) {
+			// Add the value from the second collection only if not present in the first
+			if (!collection1.containsKey(value.key)) {
+				collection1[value.key] = value.value
+			}
+		}
+	}
+
+	static CombinePathListUnique(collection1, collection2) {
 		var valueSet = Set.new()
 		for (value in collection1) {
 			valueSet.add(value.toString)
