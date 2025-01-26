@@ -246,9 +246,7 @@ class TestBuildTask is SoupTask {
 
 		// Load the module references
 		if (sharedBuildTable.containsKey("ModuleDependencies")) {
-			arguments.ModuleDependencies = TestBuildTask.CombineUnique(
-				arguments.ModuleDependencies,
-				ListExtensions.ConvertToPathList(sharedBuildTable["ModuleDependencies"]))
+			arguments.ModuleDependencies = MapExtensions.ConvertToPathMap(sharedBuildTable["ModuleDependencies"])
 		}
 	}
 
