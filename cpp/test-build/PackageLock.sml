@@ -4,10 +4,10 @@ Closures: {
 		Wren: {
 			'Soup.Test.Cpp': { Version: './', Build: 'Build0', Tool: 'Tool0' }
 			'Soup|Build.Utils': { Version: 0.8.0, Build: 'Build0', Tool: 'Tool0' }
-			'Soup|Cpp.Compiler': { Version: 0.12.0, Build: 'Build0', Tool: 'Tool0' }
-			'Soup|Cpp.Compiler.Clang': { Version: 0.3.3, Build: 'Build0', Tool: 'Tool0' }
-			'Soup|Cpp.Compiler.GCC': { Version: 0.5.0, Build: 'Build0', Tool: 'Tool0' }
-			'Soup|Cpp.Compiler.MSVC': { Version: 0.12.0, Build: 'Build0', Tool: 'Tool0' }
+			'Soup|Cpp.Compiler': { Version: 0.13.1, Build: 'Build0', Tool: 'Tool0' }
+			'Soup|Cpp.Compiler.Clang': { Version: 0.5.1, Build: 'Build0', Tool: 'Tool0' }
+			'Soup|Cpp.Compiler.GCC': { Version: 0.6.1, Build: 'Build0', Tool: 'Tool0' }
+			'Soup|Cpp.Compiler.MSVC': { Version: 0.13.1, Build: 'Build0', Tool: 'Tool0' }
 			'mwasplund|Soup.Test.Cpp': { Version: './', Build: 'Build0', Tool: 'Tool0' }
 		}
 	}
