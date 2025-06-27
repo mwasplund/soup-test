@@ -8,7 +8,7 @@ import "Soup|Build.Utils:./Path" for Path
 import "Soup|Build.Utils:./Set" for Set
 import "Soup|Build.Utils:./ListExtensions" for ListExtensions
 import "Soup|Build.Utils:./MapExtensions" for MapExtensions
-import "Soup|Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType, PartitionSourceFile, HeaderFileSet
+import "Soup|Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType, SourceFile
 import "Soup|Cpp.Compiler:./BuildEngine" for BuildEngine
 import "Soup|Cpp.Compiler.Clang:./ClangCompiler" for ClangCompiler
 import "Soup|Cpp.Compiler.GCC:./GCCCompiler" for GCCCompiler
@@ -62,7 +62,8 @@ class TestBuildTask is SoupTask {
 
 		// Load the test properties
 		var tests = recipe["Tests"]
-		TestBuildTask.LoadTestBuildProperties(tests, arguments)
+		var preprocessors = globalState["Preprocessors"]
+		TestBuildTask.LoadTestBuildProperties(tests, preprocessors, arguments)
 
 		// Load up the input build parameters from the shared build state as if
 		// this is a dependency build
@@ -206,9 +207,11 @@ class TestBuildTask is SoupTask {
 		}
 	}
 
-	static LoadTestBuildProperties(tests, arguments) {
+	static LoadTestBuildProperties(tests, preprocessors, arguments) {
 		if (tests.containsKey("Source")) {
-			arguments.SourceFiles = ListExtensions.ConvertToPathList(tests["Source"])
+			// Fill in the info on existing source files
+			var sourceFiles = ListExtensions.ConvertToPathList(tests["Source"])
+			arguments.SourceFiles = TestBuildTask.UpdateCompileFiles(sourceFiles, preprocessors)
 		} else {
 			Fiber.abort("No Test Source Files")
 		}
@@ -228,6 +231,87 @@ class TestBuildTask is SoupTask {
 
 		arguments.TargetName = "TestHarness"
 		arguments.TargetType = BuildTargetType.Executable
+	}
+
+	static UpdateCompileFiles(sourceFiles, preprocessors) {
+		Soup.info("Update Files")
+		var result = []
+		for (sourceFile in sourceFiles) {
+			result.add(TestBuildTask.UpdateSourceInfo(sourceFile, preprocessors))
+		}
+
+		return result
+	}
+
+	static UpdateSourceInfo(file, preprocessors) {
+		Soup.info("Update Source File: %(file)")
+
+		var preprocessorResult = TestBuildTask.ResolvePreprocessorResult(file, preprocessors)
+		var imports = []
+		var module = null
+		var isInterface = null
+		var partition = null
+		for (entry in preprocessorResult["Result"]) {
+			var parseResult = entry.split(" ")
+			if (parseResult.count == 0) {
+				Fiber.abort("Found empty parse result")
+			}
+
+			var resultType = parseResult[0]
+			if (resultType == "import") {
+				if (parseResult.count == 2) {
+					imports.add(parseResult[1])
+				} else {
+					Fiber.abort("Import result must have exactly two values")
+				}
+			} else if (resultType == "module-implementation") {
+				if (parseResult.count == 2) {
+					var moduleValue = parseResult[1].split(":")
+					isInterface = false
+					module = moduleValue[0]
+					if (moduleValue.count == 2) {
+						partition = moduleValue[1]
+					}
+				} else {
+					Fiber.abort("Module result must have exactly two values")
+				}
+
+			} else if (resultType == "module-interface") {
+				if (parseResult.count == 2) {
+					var moduleValue = parseResult[1].split(":")
+					isInterface = true
+					module = moduleValue[0]
+					if (moduleValue.count == 2) {
+						partition = moduleValue[1]
+					}
+				} else {
+					Fiber.abort("Module result must have exactly two values")
+				}
+
+			} else {
+				Fiber.abort("Unknown parser result type %(resultType)")
+			}
+		}
+
+		return SourceFile.new(
+			file,
+			module,
+			isInterface,
+			partition,
+			imports)
+	}
+
+	static ResolvePreprocessorResult(file, preprocessors) {
+		var preprocessorName = "Scan %(file)"
+
+		Soup.info("Preprocessor: %(preprocessorName)")
+		for (preprocessor in preprocessors) {
+			if (preprocessor["Title"] == preprocessorName) {
+				return preprocessor
+			}
+		}
+
+		Fiber.abort("Preprocessor result missing for %(file) -> %(preprocessors)")
 	}
 
 	static LoadDependencyBuildInput(sharedBuildTable, arguments) {
