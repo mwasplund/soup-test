@@ -1,18 +1,18 @@
-﻿// <copyright file="TestBuildTask.wren" company="Soup">
+﻿// <copyright file="test-build-task.wren" company="Soup">
 // Copyright (c) Soup. All rights reserved.
 // </copyright>
 
 import "soup" for Soup, SoupTask
-import "Soup|Build.Utils:./BuildOperation" for BuildOperation
-import "Soup|Build.Utils:./Path" for Path
-import "Soup|Build.Utils:./Set" for Set
-import "Soup|Build.Utils:./ListExtensions" for ListExtensions
-import "Soup|Build.Utils:./MapExtensions" for MapExtensions
-import "Soup|Cpp.Compiler:./BuildArguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType, SourceFile
-import "Soup|Cpp.Compiler:./BuildEngine" for BuildEngine
-import "Soup|Cpp.Compiler.Clang:./ClangCompiler" for ClangCompiler
-import "Soup|Cpp.Compiler.GCC:./GCCCompiler" for GCCCompiler
-import "Soup|Cpp.Compiler.MSVC:./MSVCCompiler" for MSVCCompiler
+import "Soup|Build.Utils:./build-operation" for BuildOperation
+import "Soup|Build.Utils:./path" for Path
+import "Soup|Build.Utils:./set" for Set
+import "Soup|Build.Utils:./list-extensions" for ListExtensions
+import "Soup|Build.Utils:./map-extensions" for MapExtensions
+import "Soup|Cpp.Compiler:./build-arguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType, SourceFile
+import "Soup|Cpp.Compiler:./build-engine" for BuildEngine
+import "Soup|Cpp.Compiler.Clang:./clang-compiler" for ClangCompiler
+import "Soup|Cpp.Compiler.GCC:./gcc-compiler" for GCCCompiler
+import "Soup|Cpp.Compiler.MSVC:./msvc-compiler" for MSVCCompiler
 
 /// <summary>
 /// The test build task that will run after the main build task
