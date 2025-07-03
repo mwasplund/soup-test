@@ -8,5 +8,5 @@ module;
 
 export module Soup.Test.Assert;
 
-#include "SoupAssert.h"
-#include "RunTest.h"
+#include "soup-assert.h"
+#include "run-test.h"
