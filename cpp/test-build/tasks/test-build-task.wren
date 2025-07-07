@@ -74,8 +74,8 @@ class TestBuildTask is SoupTask {
 		TestBuildTask.LoadTestDependencyBuildInput(globalState, arguments)
 
 		// Update to place the output in a sub folder
-		arguments.ObjectDirectory = arguments.ObjectDirectory + Path.new("Test/")
-		arguments.BinaryDirectory = arguments.BinaryDirectory + Path.new("Test/")
+		arguments.ObjectDirectory = arguments.ObjectDirectory + Path.new("test/")
+		arguments.BinaryDirectory = arguments.BinaryDirectory + Path.new("test/")
 
 		// Initialize the compiler to use
 		var compilerName = activeBuildTable["Compiler"]

@@ -1,6 +1,6 @@
 Name: 'Soup.Test.Cpp'
 Language: 'Wren|0'
-Version: 0.15.0
+Version: 0.15.1
 Source: [
 	'tasks/test-build-task.wren'
 ]
