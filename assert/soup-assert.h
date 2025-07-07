@@ -41,7 +41,7 @@ namespace Soup::Test
 				return TException(exception);
 			}
 
-			throw new std::runtime_error("Should not hit this");
+			throw std::runtime_error("Should not hit this");
 		}
 
 		template<typename T> struct is_shared_ptr : std::false_type {};
