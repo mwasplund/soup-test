@@ -3,6 +3,7 @@ Language: 'Wren|0'
 Version: 0.15.1
 Source: [
 	'tasks/test-build-task.wren'
+	'tasks/test-parse-module-preprocessor-task.wren'
 ]
 Dependencies: {
 	Runtime: [

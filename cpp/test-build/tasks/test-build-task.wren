@@ -4,6 +4,7 @@
 
 import "soup" for Soup, SoupTask
 import "Soup|Build.Utils:./build-operation" for BuildOperation
+import "Soup|Build.Utils:./glob" for Glob
 import "Soup|Build.Utils:./path" for Path
 import "Soup|Build.Utils:./set" for Set
 import "Soup|Build.Utils:./list-extensions" for ListExtensions
@@ -62,8 +63,9 @@ class TestBuildTask is SoupTask {
 
 		// Load the test properties
 		var tests = recipe["Tests"]
+		var filesystem = globalState["FileSystem"]
 		var preprocessors = globalState["Preprocessors"]
-		TestBuildTask.LoadTestBuildProperties(tests, preprocessors, arguments)
+		TestBuildTask.LoadTestBuildProperties(tests, filesystem, preprocessors, arguments)
 
 		// Load up the input build parameters from the shared build state as if
 		// this is a dependency build
@@ -74,8 +76,8 @@ class TestBuildTask is SoupTask {
 		TestBuildTask.LoadTestDependencyBuildInput(globalState, arguments)
 
 		// Update to place the output in a sub folder
-		arguments.ObjectDirectory = arguments.ObjectDirectory + Path.new("test/")
-		arguments.BinaryDirectory = arguments.BinaryDirectory + Path.new("test/")
+		arguments.ObjectDirectory = arguments.ObjectDirectory + Path.new("tests/")
+		arguments.BinaryDirectory = arguments.BinaryDirectory + Path.new("tests/")
 
 		// Initialize the compiler to use
 		var compilerName = activeBuildTable["Compiler"]
@@ -130,7 +132,6 @@ class TestBuildTask is SoupTask {
 
 	static createClangCompiler {
 		return Fn.new { |activeState|
-			Soup.info("%(activeState)")
 			var clang = activeState["Clang"]
 			var clangToolPath = Path.new(clang["CppCompiler"])
 			var archiveToolPath = Path.new(clang["Archiver"])
@@ -207,14 +208,19 @@ class TestBuildTask is SoupTask {
 		}
 	}
 
-	static LoadTestBuildProperties(tests, preprocessors, arguments) {
-		if (tests.containsKey("Source")) {
+	static LoadTestBuildProperties(tests, filesystem, preprocessors, arguments) {
+		var allowedPaths = []
+		if (tests.containsKey("SourceInclude")) {
 			// Fill in the info on existing source files
-			var sourceFiles = ListExtensions.ConvertToPathList(tests["Source"])
-			arguments.SourceFiles = TestBuildTask.UpdateCompileFiles(sourceFiles, preprocessors)
+			allowedPaths = ListExtensions.ConvertToPathList(tests["Source"])
 		} else {
-			Fiber.abort("No Test Source Files")
+			// Default to matching all C++ files under the tests directory
+			allowedPaths.add(Path.new("./tests/**/*.cpp"))
 		}
+
+		// Expand the source from all discovered files
+		Soup.info("Expand Source")
+		arguments.SourceFiles = TestBuildTask.DiscoverCompileFiles(filesystem, Path.new(), preprocessors, allowedPaths)
 
 		// Combine the include paths from the recipe and the system
 		if (tests.containsKey("IncludePaths")) {
@@ -233,18 +239,40 @@ class TestBuildTask is SoupTask {
 		arguments.TargetType = BuildTargetType.Executable
 	}
 
-	static UpdateCompileFiles(sourceFiles, preprocessors) {
-		Soup.info("Update Files")
-		var result = []
-		for (sourceFile in sourceFiles) {
-			result.add(TestBuildTask.UpdateSourceInfo(sourceFile, preprocessors))
+	static DiscoverCompileFiles(currentDirectory, workingDirectory, preprocessors, allowedPaths) {
+		var files = []
+		for (directoryEntity in currentDirectory) {
+			if (directoryEntity is String) {
+				var file = workingDirectory + Path.new(directoryEntity)
+				Soup.info("Check File: %(file)")
+				if (TestBuildTask.IsMatchAny(allowedPaths, file)) {
+					files.add(TestBuildTask.CreateSourceInfo(file, preprocessors))
+				}
+			} else {
+				for (child in directoryEntity) {
+					var directory = workingDirectory + Path.new(child.key)
+					Soup.info("Found Directory: %(directory)")
+					var subFiles = TestBuildTask.DiscoverCompileFiles(child.value, directory, preprocessors, allowedPaths)
+					ListExtensions.Append(files, subFiles)
+				}
+			}
 		}
 
-		return result
+		return files
 	}
 
-	static UpdateSourceInfo(file, preprocessors) {
-		Soup.info("Update Source File: %(file)")
+	static IsMatchAny(allowedPaths, file) {
+		for (allowedPath in allowedPaths) {
+			if (Glob.IsMatch(allowedPath, file)) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	static CreateSourceInfo(file, preprocessors) {
+		Soup.info("Found Source File: %(file)")
 
 		var preprocessorResult = TestBuildTask.ResolvePreprocessorResult(file, preprocessors)
 		var imports = []
