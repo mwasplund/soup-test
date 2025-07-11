@@ -1,10 +1,6 @@
 Name: 'Soup.Test.Cpp'
 Language: 'Wren|0'
-Version: 0.15.1
-Source: [
-	'tasks/test-build-task.wren'
-	'tasks/test-parse-module-preprocessor-task.wren'
-]
+Version: 0.15.2
 Dependencies: {
 	Runtime: [
 		'Soup|Cpp.Compiler@0'
