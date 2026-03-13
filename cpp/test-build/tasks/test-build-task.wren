@@ -339,7 +339,7 @@ class TestBuildTask is SoupTask {
 			}
 		}
 
-		Fiber.abort("Preprocessor result missing for %(file) -> %(preprocessors)")
+		Fiber.abort("Preprocessor result missing for %(file)")
 	}
 
 	static LoadDependencyBuildInput(sharedBuildTable, arguments) {
