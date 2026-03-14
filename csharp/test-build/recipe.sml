@@ -1,4 +1,4 @@
-Name: 'Soup.Test.CSharp'
+Name: 'soup-test-csharp'
 Language: 'C#'
 Version: 0.2.0
 Source: [
