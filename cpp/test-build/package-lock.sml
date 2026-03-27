@@ -1,7 +1,7 @@
 Version: 6
 Closure: {
 	Wren: {
-		'mwasplund|soup-test-cpp': { Version: './', Build: 'Build0', Tool: 'Tool0' }
+		'mwasplund|soup-test-cpp': { Version: './', Build: '0', Tool: '0' }
 		'soup-test-cpp': { Version: './', Build: '0', Tool: '0' }
 		'soup|build-utils': { Version: 0.9.2, Digest: 'sha256:5350668c3d273aeeb1718ac1520ad24c24b0c8640785286bbca788e7efa7da3c', Build: '0', Tool: '0' }
 		'soup|cpp-compiler': { Version: 0.14.2, Digest: 'sha256:443b9feed4040e881730f78f19980c8fff333486bffe4a3a0579fd0ec8c0a4b8', Build: '0', Tool: '0' }
