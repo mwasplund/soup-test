@@ -1,6 +1,6 @@
 Name: 'soup-test-cpp'
 Language: 'Wren|0'
-Version: 0.15.3
+Version: 0.16.0
 Dependencies: {
 	Runtime: [
 		'soup|cpp-compiler@0'
@@ -12,6 +12,6 @@ Dependencies: {
 	Tool: [
 		'[C++]mwasplund|copy@1'
 		'[C++]mwasplund|mkdir@1'
-		'[C++]mwasplund|parse-modules@1'
+		'[C++]mwasplund|parse-modules@2'
 	]
 }
