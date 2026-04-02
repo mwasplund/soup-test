@@ -3,17 +3,17 @@
 // </copyright>
 
 import "soup" for Soup, SoupTask
-import "Soup|Build.Utils:./build-operation" for BuildOperation
-import "Soup|Build.Utils:./glob" for Glob
-import "Soup|Build.Utils:./path" for Path
-import "Soup|Build.Utils:./set" for Set
-import "Soup|Build.Utils:./list-extensions" for ListExtensions
-import "Soup|Build.Utils:./map-extensions" for MapExtensions
-import "Soup|Cpp.Compiler:./build-arguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType, SourceFile
-import "Soup|Cpp.Compiler:./build-engine" for BuildEngine
-import "Soup|Cpp.Compiler.Clang:./clang-compiler" for ClangCompiler
-import "Soup|Cpp.Compiler.GCC:./gcc-compiler" for GCCCompiler
-import "Soup|Cpp.Compiler.MSVC:./msvc-compiler" for MSVCCompiler
+import "soup|build-utils:./build-operation" for BuildOperation
+import "soup|build-utils:./glob" for Glob
+import "soup|build-utils:./path" for Path
+import "soup|build-utils:./set" for Set
+import "soup|build-utils:./list-extensions" for ListExtensions
+import "soup|build-utils:./map-extensions" for MapExtensions
+import "soup|cpp-compiler:./build-arguments" for BuildArguments, BuildOptimizationLevel, BuildTargetType, SourceFile
+import "soup|cpp-compiler:./build-engine" for BuildEngine
+import "soup|cpp-compiler-clang:./clang-compiler" for ClangCompiler
+import "soup|cpp-compiler-gcc:./gcc-compiler" for GCCCompiler
+import "soup|cpp-compiler-msvc:./msvc-compiler" for MSVCCompiler
 
 /// <summary>
 /// The test build task that will run after the main build task

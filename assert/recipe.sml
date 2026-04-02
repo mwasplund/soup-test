@@ -1,3 +1,3 @@
-Name: 'Soup.Test.Assert'
+Name: 'soup-test-assert'
 Language: 'C++|0'
 Version: 0.5.0
