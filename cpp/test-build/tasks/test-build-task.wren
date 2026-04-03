@@ -284,49 +284,20 @@ class TestBuildTask is SoupTask {
 		Soup.info("Found Source File: %(file)")
 
 		var preprocessorResult = TestBuildTask.ResolvePreprocessorResult(file, preprocessors)
-		var imports = []
+		var result = preprocessorResult["Result"]
+
+		var imports = result["Imports"]
 		var module = null
 		var isInterface = null
 		var partition = null
-		for (entry in preprocessorResult["Result"]) {
-			var parseResult = entry.split(" ")
-			if (parseResult.count == 0) {
-				Fiber.abort("Found empty parse result")
-			}
 
-			var resultType = parseResult[0]
-			if (resultType == "import") {
-				if (parseResult.count == 2) {
-					imports.add(parseResult[1])
-				} else {
-					Fiber.abort("Import result must have exactly two values")
-				}
-			} else if (resultType == "module-implementation") {
-				if (parseResult.count == 2) {
-					var moduleValue = parseResult[1].split(":")
-					isInterface = false
-					module = moduleValue[0]
-					if (moduleValue.count == 2) {
-						partition = moduleValue[1]
-					}
-				} else {
-					Fiber.abort("Module result must have exactly two values")
-				}
-
-			} else if (resultType == "module-interface") {
-				if (parseResult.count == 2) {
-					var moduleValue = parseResult[1].split(":")
-					isInterface = true
-					module = moduleValue[0]
-					if (moduleValue.count == 2) {
-						partition = moduleValue[1]
-					}
-				} else {
-					Fiber.abort("Module result must have exactly two values")
-				}
-
-			} else {
-				Fiber.abort("Unknown parser result type %(resultType)")
+		if (result["IsModule"]) {
+			var name = result["Name"]
+			var moduleValue = name.split(":")
+			isInterface = result["IsInterface"]
+			module = moduleValue[0]
+			if (moduleValue.count == 2) {
+				partition = moduleValue[1]
 			}
 		}
 
