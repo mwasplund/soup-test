@@ -132,12 +132,21 @@ class TestBuildTask is SoupTask {
 
 	static createClangCompiler {
 		return Fn.new { |activeState|
-			var clang = activeState["Clang"]
-			var clangToolPath = Path.new(clang["CppCompiler"])
-			var archiveToolPath = Path.new(clang["Archiver"])
+			var clang = BuildTask.CheckGet(activeState, "Clang")
+			var version = BuildTask.CheckGet(clang, "Version")
+			var archiverToolPath = Path.new(BuildTask.CheckGet(clang, "Archiver"))
+			var cppCompilerToolPath = Path.new(BuildTask.CheckGet(clang, "CppCompiler"))
+
+			var cppScannerToolPath = null
+			if (clang.containsKey("CppScanner")) {
+				cppScannerToolPath = Path.new(clang["CppScanner"])
+			}
+
 			return ClangCompiler.new(
-				clangToolPath,
-				archiveToolPath)
+				version,
+				archiverToolPath,
+				cppCompilerToolPath,
+				cppScannerToolPath)
 		}
 	}
 
