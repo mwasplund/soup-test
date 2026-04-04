@@ -132,10 +132,10 @@ class TestBuildTask is SoupTask {
 
 	static createClangCompiler {
 		return Fn.new { |activeState|
-			var clang = BuildTask.CheckGet(activeState, "Clang")
-			var version = BuildTask.CheckGet(clang, "Version")
-			var archiverToolPath = Path.new(BuildTask.CheckGet(clang, "Archiver"))
-			var cppCompilerToolPath = Path.new(BuildTask.CheckGet(clang, "CppCompiler"))
+			var clang = TestBuildTask.CheckGet(activeState, "Clang")
+			var version = TestBuildTask.CheckGet(clang, "Version")
+			var archiverToolPath = Path.new(TestBuildTask.CheckGet(clang, "Archiver"))
+			var cppCompilerToolPath = Path.new(TestBuildTask.CheckGet(clang, "CppCompiler"))
 
 			var cppScannerToolPath = null
 			if (clang.containsKey("CppScanner")) {
@@ -408,5 +408,13 @@ class TestBuildTask is SoupTask {
 		}
 
 		return ListExtensions.ConvertToPathList(valueSet.list)
+	}
+
+	static CheckGet(values, key) {
+		if (!values.containsKey(key)) {
+			Fiber.abort("Missing key: %(key) %(values)")
+		}
+
+		return values[key]
 	}
 }
