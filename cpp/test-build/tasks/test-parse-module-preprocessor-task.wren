@@ -25,13 +25,20 @@ class TestParseModulePreprocessorTask is SoupPreprocessorTask {
 			allowedPaths = ListExtensions.ConvertToPathList(tests["Source"])
 		} else {
 			// Default to matching all C++ files under the tests folder
-			allowedPaths.add(Path.new("./tests/**/*.cpp"))
+			allowedPaths.add(Path.new("./**/*.cpp"))
+		}
+
+		var excludePaths = []
+		if (tests.containsKey("Exclude")) {
+			// Fill in the info on existing excluded files
+			excludePaths = ListExtensions.ConvertToPathList(tests["Exclude"])
 		}
 
 		// Expand the source from all discovered files
 		Soup.info("Expand Source")
 		var filesystem = globalState["FileSystem"]
-		var sourceFiles = TestParseModulePreprocessorTask.DiscoverCompileFiles(filesystem, Path.new(), allowedPaths)
+		var sourceFiles = TestParseModulePreprocessorTask.DiscoverCompileFiles(
+			filesystem, Path.new(), allowedPaths, excludePaths)
 
 		var context = globalState["Context"]
 		var packageRoot = Path.new(context["PackageDirectory"])
@@ -54,46 +61,53 @@ class TestParseModulePreprocessorTask is SoupPreprocessorTask {
 			ListExtensions.ConvertFromPathList(createObjectTestsDirectory.DeclaredOutput))
 
 		for (sourceFile in sourceFiles) {
-			var targetFile = targetDirectory + objectTestsDirectory + Path.new(sourceFile.GetFileName())
-			targetFile.SetFileExtension("txt")
-
 			Soup.createOperation(
 				"Scan %(sourceFile)",
 				parseModuleExecutable,
 				[
-					targetFile.toString,
 					sourceFile.toString,
 				],
 				packageRoot.toString,
 				[
 					sourceFile.toString,
 				],
-				[
-					targetFile.toString,
-				])
+				[])
 		}
 	}
 
-	static DiscoverCompileFiles(currentDirectory, workingDirectory, allowedPaths) {
+	static DiscoverCompileFiles(currentDirectory, workingDirectory, allowedPaths, excludePaths) {
 		var files = []
 		for (directoryEntity in currentDirectory) {
 			if (directoryEntity is String) {
 				var file = workingDirectory + Path.new(directoryEntity)
 				Soup.info("Check File: %(file)")
-				if (TestParseModulePreprocessorTask.IsMatchAny(allowedPaths, file)) {
+				if (TestParseModulePreprocessorTask.ShouldInclude(allowedPaths, excludePaths, file)) {
 					files.add(file)
 				}
 			} else {
 				for (child in directoryEntity) {
 					var directory = workingDirectory + Path.new(child.key)
 					Soup.info("Found Directory: %(directory)")
-					var subFiles = TestParseModulePreprocessorTask.DiscoverCompileFiles(child.value, directory, allowedPaths)
+					var subFiles = TestParseModulePreprocessorTask.DiscoverCompileFiles(child.value, directory, allowedPaths, excludePaths)
 					ListExtensions.Append(files, subFiles)
 				}
 			}
 		}
 
 		return files
+	}
+
+	static ShouldInclude(allowedPaths, excludePaths, file) {
+		if (TestParseModulePreprocessorTask.IsMatchAny(allowedPaths, file)) {
+			// If we matched included, check if there is an explicit exclude
+			if (TestParseModulePreprocessorTask.IsMatchAny(excludePaths, file)) {
+				return false
+			} else {
+				return true
+			}
+		} else {
+			return false
+		}
 	}
 
 	static IsMatchAny(allowedPaths, file) {
