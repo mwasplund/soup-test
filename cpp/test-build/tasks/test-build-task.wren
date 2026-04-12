@@ -286,6 +286,7 @@ class TestBuildTask is SoupTask {
 		var preprocessorResult = TestBuildTask.ResolvePreprocessorResult(file, preprocessors)
 		var result = preprocessorResult["Result"]
 
+		var root = Path.new("./")
 		var imports = result["Imports"]
 		var module = null
 		var isInterface = null
@@ -303,6 +304,7 @@ class TestBuildTask is SoupTask {
 
 		return SourceFile.new(
 			file,
+			root,
 			module,
 			isInterface,
 			partition,

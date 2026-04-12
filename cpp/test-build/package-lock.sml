@@ -4,7 +4,7 @@ Closure: {
 		'mwasplund|soup-test-cpp': { Version: './', Build: '0', Tool: '0' }
 		'soup-test-cpp': { Version: './', Build: '0', Tool: '0' }
 		'soup|build-utils': { Version: 0.9.2, Digest: 'sha256:5350668c3d273aeeb1718ac1520ad24c24b0c8640785286bbca788e7efa7da3c', Build: '0', Tool: '0' }
-		'soup|cpp-compiler': { Version: 0.15.0, Digest: 'sha256:c345cd3b2f1fa1c0c5b3a77b86c27f402b6e23bdc2323f67818adc0437cd27c9', Build: '0', Tool: '0' }
+		'soup|cpp-compiler': { Version: 0.16.0, Digest: 'sha256:63a843709244c97919debcb98db47b9235a62b0e7d42736ef70cf2014e9ea4a0', Build: '0', Tool: '0' }
 		'soup|cpp-compiler-clang': { Version: 0.8.0, Digest: 'sha256:3789bd7b88bdab4deab3aee2ce8a5eff3dbc34b5282e93544e5345edff55c9b0', Build: '0', Tool: '0' }
 		'soup|cpp-compiler-gcc': { Version: 0.7.2, Digest: 'sha256:a58af2b0c398db4ce983f0ed9c674ea05d8d9260bd49e8eb2f8209c194895688', Build: '0', Tool: '0' }
 		'soup|cpp-compiler-msvc': { Version: 0.14.2, Digest: 'sha256:209594330499b4bc048d68f004b93aa2d6ef6e5f3962addf839f834e6ca32415', Build: '0', Tool: '0' }
