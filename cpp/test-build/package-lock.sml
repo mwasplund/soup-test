@@ -3,11 +3,11 @@ Closure: {
 	Wren: {
 		'mwasplund|soup-test-cpp': { Version: './', Build: '0', Tool: '0' }
 		'soup-test-cpp': { Version: './', Build: '0', Tool: '0' }
-		'soup|build-utils': { Version: 0.9.2, Digest: 'sha256:5350668c3d273aeeb1718ac1520ad24c24b0c8640785286bbca788e7efa7da3c', Build: '0', Tool: '0' }
-		'soup|cpp-compiler': { Version: 0.16.0, Digest: 'sha256:63a843709244c97919debcb98db47b9235a62b0e7d42736ef70cf2014e9ea4a0', Build: '0', Tool: '0' }
-		'soup|cpp-compiler-clang': { Version: 0.8.0, Digest: 'sha256:3789bd7b88bdab4deab3aee2ce8a5eff3dbc34b5282e93544e5345edff55c9b0', Build: '0', Tool: '0' }
-		'soup|cpp-compiler-gcc': { Version: 0.7.2, Digest: 'sha256:a58af2b0c398db4ce983f0ed9c674ea05d8d9260bd49e8eb2f8209c194895688', Build: '0', Tool: '0' }
-		'soup|cpp-compiler-msvc': { Version: 0.14.2, Digest: 'sha256:209594330499b4bc048d68f004b93aa2d6ef6e5f3962addf839f834e6ca32415', Build: '0', Tool: '0' }
+		'soup|build-utils': { Version: 0.9.3, Digest: 'sha256:640456fb5c985c2ff460c9b00197811c273d6f093f1fb6695baa3a7bea78d521', Build: '0', Tool: '0' }
+		'soup|cpp-compiler': { Version: 0.17.1, Digest: 'sha256:89a9e06482f4d267900c4ecb36737b48442bf6ecf98022e90efd81673d52ce3f', Build: '0', Tool: '0' }
+		'soup|cpp-compiler-clang': { Version: 0.9.1, Digest: 'sha256:4ba9fdb1c1af3d5b8ded4381854eeb4929efbc7fa6a3f4f6202fcbee69d16527', Build: '0', Tool: '0' }
+		'soup|cpp-compiler-gcc': { Version: 0.8.0, Digest: 'sha256:3f22f75709a8911e7e521e9611c399d2579ab6755e8dbfe92e0d27b346063af4', Build: '0', Tool: '0' }
+		'soup|cpp-compiler-msvc': { Version: 0.15.0, Digest: 'sha256:ea97f3ade3c9b08cc41716c71930483aa47c42af554d27cf436c529a8a9677ea', Build: '0', Tool: '0' }
 	}
 }
 Builds: {

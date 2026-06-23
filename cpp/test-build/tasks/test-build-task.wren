@@ -46,8 +46,10 @@ class TestBuildTask is SoupTask {
 		TestBuildTask.registerCompiler("MSVC", TestBuildTask.createMSVCCompiler)
 
 		var activeState = Soup.activeState
-		var globalState = Soup.globalState
 		var sharedState = Soup.sharedState
+		var globalState = Soup.globalState
+
+		var isPass1 = !(globalState.containsKey("Preprocessors"))
 
 		var recipe = globalState["Recipe"]
 		var activeBuildTable = activeState["Build"]
@@ -67,10 +69,12 @@ class TestBuildTask is SoupTask {
 		var preprocessors = globalState["Preprocessors"]
 		TestBuildTask.LoadTestBuildProperties(tests, filesystem, preprocessors, arguments)
 
-		// Load up the input build parameters from the shared build state as if
-		// this is a dependency build
-		var sharedBuildTable = sharedState["Build"]
-		TestBuildTask.LoadDependencyBuildInput(sharedBuildTable, arguments)
+		if (!isPass1) {
+			// Load up the input build parameters from the shared build state as if
+			// this is a dependency build
+			var sharedBuildTable = sharedState["Build"]
+			TestBuildTask.LoadDependencyBuildInput(sharedBuildTable, arguments)
+		}
 
 		// Load up the test dependencies build input to add extra test runtime libraries
 		TestBuildTask.LoadTestDependencyBuildInput(globalState, arguments)
@@ -87,44 +91,58 @@ class TestBuildTask is SoupTask {
 		}
 
 		var compiler = __compilerFactory[compilerName].call(activeState)
-
 		var buildEngine = BuildEngine.new(compiler)
-		var buildResult = buildEngine.Execute(arguments)
 
-		// Create the operation to run tests during build
-		var title = "Run Tests"
-		var program = buildResult.TargetFile
-		var workingDirectory = arguments.TargetRootDirectory
-		var runArguments = []
+		if (isPass1) {
+			var preprocessorOperations = buildEngine.ExecutePass1(arguments)
 
-		// Ensure that the executable and all runtime dependencies are in place before running tests
-		var inputFiles = []
-		inputFiles = inputFiles + buildResult.RuntimeDependencies
-		inputFiles.add(program)
+			// Register the build operations
+			for (operation in preprocessorOperations) {
+				Soup.createPreprocessorOperation(
+					operation.Title,
+					operation.Executable.toString,
+					operation.Arguments,
+					operation.WorkingDirectory.toString,
+					ListExtensions.ConvertFromPathList(operation.DeclaredInput))
+			}
+		} else {
+			var buildResult = buildEngine.ExecutePass2(arguments)
 
-		// The test should have no output
-		var outputFiles = []
+			// Create the operation to run tests during build
+			var title = "Run Tests"
+			var program = buildResult.TargetFile
+			var workingDirectory = arguments.TargetRootDirectory
+			var runArguments = []
 
-		var runTestsOperation = BuildOperation.new(
-			title,
-			workingDirectory,
-			program,
-			runArguments,
-			inputFiles,
-			outputFiles)
+			// Ensure that the executable and all runtime dependencies are in place before running tests
+			var inputFiles = []
+			inputFiles = inputFiles + buildResult.RuntimeDependencies
+			inputFiles.add(program)
 
-		// Run the test harness
-		buildResult.BuildOperations.add(runTestsOperation)
+			// The test should have no output
+			var outputFiles = []
 
-		// Register the build operations
-		for (operation in buildResult.BuildOperations) {
-			Soup.createOperation(
-				operation.Title,
-				operation.Executable.toString,
-				operation.Arguments,
-				operation.WorkingDirectory.toString,
-				ListExtensions.ConvertFromPathList(operation.DeclaredInput),
-				ListExtensions.ConvertFromPathList(operation.DeclaredOutput))
+			var runTestsOperation = BuildOperation.new(
+				title,
+				workingDirectory,
+				program,
+				runArguments,
+				inputFiles,
+				outputFiles)
+
+			// Run the test harness
+			buildResult.BuildOperations.add(runTestsOperation)
+
+			// Register the build operations
+			for (operation in buildResult.BuildOperations) {
+				Soup.createOperation(
+					operation.Title,
+					operation.Executable.toString,
+					operation.Arguments,
+					operation.WorkingDirectory.toString,
+					ListExtensions.ConvertFromPathList(operation.DeclaredInput),
+					ListExtensions.ConvertFromPathList(operation.DeclaredOutput))
+			}
 		}
 
 		Soup.info("Test Build Generate Done")
@@ -283,22 +301,24 @@ class TestBuildTask is SoupTask {
 	static CreateSourceInfo(file, preprocessors) {
 		Soup.info("Found Source File: %(file)")
 
-		var preprocessorResult = TestBuildTask.ResolvePreprocessorResult(file, preprocessors)
-		var result = preprocessorResult["Result"]
-
 		var root = Path.new("./")
-		var imports = result["Imports"]
+		var imports = []
 		var module = null
 		var isInterface = null
 		var partition = null
 
-		if (result["IsModule"]) {
-			var name = result["Name"]
-			var moduleValue = name.split(":")
-			isInterface = result["IsInterface"]
-			module = moduleValue[0]
-			if (moduleValue.count == 2) {
-				partition = moduleValue[1]
+		if (preprocessors) {
+			var preprocessorResult = TestBuildTask.ResolvePreprocessorResult(file, preprocessors)
+			var result = preprocessorResult["Result"]
+			imports = result["Imports"]
+			if (result["IsModule"]) {
+				var name = result["Name"]
+				var moduleValue = name.split(":")
+				isInterface = result["IsInterface"]
+				module = moduleValue[0]
+				if (moduleValue.count == 2) {
+					partition = moduleValue[1]
+				}
 			}
 		}
 
