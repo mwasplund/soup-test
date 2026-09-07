@@ -7,7 +7,7 @@ Closure: {
 		'soup|cpp-compiler': { Version: 0.17.1, Digest: 'sha256:89a9e06482f4d267900c4ecb36737b48442bf6ecf98022e90efd81673d52ce3f', Build: '0', Tool: '0' }
 		'soup|cpp-compiler-clang': { Version: 0.9.1, Digest: 'sha256:4ba9fdb1c1af3d5b8ded4381854eeb4929efbc7fa6a3f4f6202fcbee69d16527', Build: '0', Tool: '0' }
 		'soup|cpp-compiler-gcc': { Version: 0.8.0, Digest: 'sha256:3f22f75709a8911e7e521e9611c399d2579ab6755e8dbfe92e0d27b346063af4', Build: '0', Tool: '0' }
-		'soup|cpp-compiler-msvc': { Version: 0.15.0, Digest: 'sha256:ea97f3ade3c9b08cc41716c71930483aa47c42af554d27cf436c529a8a9677ea', Build: '0', Tool: '0' }
+		'soup|cpp-compiler-msvc': { Version: 0.15.1, Digest: 'sha256:ffdbe6e920595351ea608c206c8e9682866004e3f3cb10cfc4457863b5909faa', Build: '0', Tool: '0' }
 	}
 }
 Builds: {
